@@ -1,7 +1,5 @@
 # DopaDone
 
-[![License: FSL-1.1-ALv2](https://img.shields.io/badge/License-FSL--1.1--ALv2-blue.svg)](LICENSE.md)
-
 A task slot machine for ADHD brains. DopaDone takes every engagement trick that platforms use to hijack your attention — randomization, XP, streaks, timers — and points them at *your own goals* instead.
 
 You have a backlog of boring-but-important tasks you can't make yourself do. DopaDone pulls one at random, gives you a five-minute timer, and asks: "What CAN you do on this right now?" Any progress counts — the biggest button on the screen is **Progress**, not Done. Runs build into XP, levels, and escalating celebrations with roguelike energy: 2 hours of inactivity resets the run and you start fresh. The result is a dopamine loop that serves you, not a platform.
@@ -43,6 +41,3 @@ Also available from [GitHub Releases](https://github.com/cielecki/dopadone/relea
 
 Found a bug? [Open an issue](https://github.com/cielecki/dopadone/issues).
 
-## License
-
-This project is licensed under the Functional Source License, Version 1.1, ALv2 (FSL-1.1-ALv2). Each release automatically converts to the Apache License, Version 2.0, two years after it is published.
