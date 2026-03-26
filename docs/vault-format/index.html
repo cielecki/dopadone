@@ -1,0 +1,966 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Vault Format — DopaDone</title><meta name="description" content="Complete reference for the DopaDone markdown vault format. Every file, field, and convention documented for AI tools, integrations, and contributors."><link rel="canonical" href="https://dopadone.app/docs/vault-format/"><!-- Favicon --><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><!-- Font preloads --><link rel="preload" href="/fonts/PlusJakartaSans.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/DMSans.woff2" as="font" type="font/woff2" crossorigin><!-- Open Graph --><meta property="og:type" content="website"><meta property="og:title" content="Vault Format — DopaDone"><meta property="og:description" content="Complete reference for the DopaDone markdown vault format. Every file, field, and convention documented for AI tools, integrations, and contributors."><meta property="og:image" content="https://dopadone.app/og.png"><meta property="og:url" content="https://dopadone.app/docs/vault-format/"><meta property="og:site_name" content="DopaDone"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Vault Format — DopaDone"><meta name="twitter:description" content="Complete reference for the DopaDone markdown vault format. Every file, field, and convention documented for AI tools, integrations, and contributors."><meta name="twitter:image" content="https://dopadone.app/og.png"><meta name="twitter:creator" content="@mcielecki"><style>.prose-inner{max-width:680px}.prose-inner :is(h1){font-family:var(--app-font-display);font-size:32px;font-weight:700;color:var(--color-text);margin-bottom:32px;line-height:1.2}.prose-inner :is(h2){font-family:var(--app-font-display);font-size:22px;font-weight:600;color:var(--color-text);margin-top:40px;margin-bottom:16px}.prose-inner :is(h3){font-family:var(--app-font-display);font-size:17px;font-weight:600;color:var(--color-text);margin-top:28px;margin-bottom:10px}.prose-inner :is(h4){font-family:var(--app-font-display);font-size:15px;font-weight:600;color:var(--color-text);margin-top:24px;margin-bottom:8px}.prose-inner :is(p){font-size:15px;line-height:1.75;color:var(--color-text-secondary);margin-bottom:16px}.prose-inner :is(em){color:var(--color-text);font-style:italic}.prose-inner :is(strong){color:var(--color-text);font-weight:600}.prose-inner :is(ul,ol){padding-left:24px;margin-bottom:16px}.prose-inner :is(li){font-size:15px;line-height:1.75;color:var(--color-text-secondary);margin-bottom:6px}.prose-inner :is(hr){border:none;border-top:1px solid var(--color-border-subtle);margin:40px 0}.prose-inner :is(code){font-family:var(--app-font-mono, "SF Mono", "Fira Code", monospace);font-size:13px;background:#ffffff0f;padding:2px 6px;border-radius:4px;color:var(--color-text)}.prose-inner :is(pre){background:#ffffff0a;border:1px solid var(--color-border-subtle);border-radius:8px;padding:16px;margin-bottom:16px;overflow-x:auto}.prose-inner pre :is(code){background:none;padding:0;font-size:13px;line-height:1.6;color:var(--color-text-secondary)}.prose-inner :is(table){width:100%;border-collapse:collapse;margin-bottom:16px;font-size:14px}.prose-inner thead :is(th){text-align:left;font-weight:600;color:var(--color-text);padding:8px 12px;border-bottom:1px solid var(--color-border-subtle)}.prose-inner tbody :is(td){padding:8px 12px;color:var(--color-text-secondary);border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top}.prose-inner tbody tr:last-child :is(td){border-bottom:none}.prose-inner :is(a){color:var(--color-accent)}.prose-inner :is(a:hover){opacity:.85}.prose-inner :is(blockquote){border-left:3px solid var(--color-accent);margin:0 0 16px;padding:8px 16px;color:var(--color-text-secondary);font-size:15px}
+</style>
+<link rel="stylesheet" href="/_assets/getting-started.DaugdqsR.css"></head> <body> <nav class="nav" data-astro-cid-dmqpwcec> <div class="nav-inner container" data-astro-cid-dmqpwcec> <a href="/" class="nav-logo" aria-label="DopaDone home" data-astro-cid-dmqpwcec> <img src="/favicon.svg" alt="" width="28" height="28" data-astro-cid-dmqpwcec> <span class="nav-wordmark" data-astro-cid-dmqpwcec> <span class="wm-dopa" data-astro-cid-dmqpwcec>Dopa</span><span class="wm-done" data-astro-cid-dmqpwcec>Done</span> </span> </a> <div class="nav-links" data-astro-cid-dmqpwcec> <a href="/vision" class="nav-link" data-astro-cid-dmqpwcec>Vision</a> <a href="/docs" class="nav-link" data-astro-cid-dmqpwcec>Docs</a> <a href="https://github.com/cielecki/dopadone" class="nav-link" target="_blank" rel="noopener" data-astro-cid-dmqpwcec>GitHub</a> <a href="#download" class="nav-cta" data-astro-cid-dmqpwcec>Download</a> </div> </div> </nav>  <main>  <article class="section"> <div class="prose-inner container"> <h1 id="dopadone-vault-format">DopaDone Vault Format</h1>
+<p>The DopaDone vault is an <strong>Obsidian-compatible directory</strong> of markdown files with YAML frontmatter. All user data — tasks, projects, habits, calendar prep, settings, and daily journals — lives in plain-text files you can read, edit, process with AI, or move anywhere.</p>
+<h2 id="directory-structure">Directory Structure</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>&#x3C;vault-root>/</span></span>
+<span class="line"><span>└── dopadone/</span></span>
+<span class="line"><span>    ├── tasks.md                    # Internal tasks</span></span>
+<span class="line"><span>    ├── projects.md                 # Internal projects</span></span>
+<span class="line"><span>    ├── presets.md                  # Weight presets, schedules, location rules</span></span>
+<span class="line"><span>    ├── settings.md                 # App settings</span></span>
+<span class="line"><span>    ├── profile.md                  # User profile (XP, level, stats)</span></span>
+<span class="line"><span>    ├── habits/</span></span>
+<span class="line"><span>    │   ├── definitions.md          # Habit definitions</span></span>
+<span class="line"><span>    │   └── active.md               # Active habit instances</span></span>
+<span class="line"><span>    ├── calendar/</span></span>
+<span class="line"><span>    │   ├── feeds.md                # Calendar feed configs</span></span>
+<span class="line"><span>    │   ├── rules.md                # Event-matching rules + prep steps</span></span>
+<span class="line"><span>    │   └── active.md               # Prep step completions</span></span>
+<span class="line"><span>    └── journal/</span></span>
+<span class="line"><span>        └── YYYY/MM/YYYY-MM-DD.md  # Daily journal entries</span></span></code></pre>
+<p>The vault location is user-selectable and stored in <code>~/Library/Application Support/dopadone/vault-path.txt</code>.</p>
+<h2 id="conventions">Conventions</h2>
+<h3 id="file-format">File Format</h3>
+<p>Every data file uses YAML frontmatter (parsed by <a href="https://github.com/jonschlinkert/gray-matter">gray-matter</a>):</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#79B8FF;font-weight:bold">---</span></span>
+<span class="line"><span style="color:#E1E4E8">key:</span></span>
+<span class="line"><span style="color:#FFAB70">  -</span><span style="color:#E1E4E8"> id: example</span></span>
+<span class="line"><span style="color:#E1E4E8">    name: Example Item</span></span>
+<span class="line"><span style="color:#79B8FF;font-weight:bold">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">Optional markdown body content</span></span></code></pre>
+<h3 id="ids">IDs</h3>
+<p>Two ID strategies are used, depending on the collection:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Strategy</th><th>Used By</th><th>Format</th></tr></thead><tbody><tr><td><strong>Slug</strong> (kebab-case)</td><td>Projects, Habits, Presets</td><td><code>my-project-name</code></td></tr><tr><td><strong>UUID</strong> (v4)</td><td>Tasks, Habit Instances, Calendar Feeds/Rules/Steps/Completions</td><td><code>123e4567-e89b-12d3-a456-426614174000</code></td></tr></tbody></table>
+<p><strong>Slug generation:</strong> Unicode-normalized, lowercased, non-word characters removed, spaces/underscores replaced with hyphens, collapsed, trimmed. Falls back to <code>"untitled"</code> if empty. Uniqueness enforced by appending <code>-2</code>, <code>-3</code>, etc.</p>
+<h3 id="priority-scale">Priority Scale</h3>
+<p>A consistent 0–4 scale shared across tasks, habits, and calendar prep:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Value</th><th>Label</th><th>Meaning</th></tr></thead><tbody><tr><td>0</td><td>Paused</td><td>Inactive, excluded from task pool</td></tr><tr><td>1</td><td>P4</td><td>No priority (default)</td></tr><tr><td>2</td><td>P3</td><td>Low</td></tr><tr><td>3</td><td>P2</td><td>Medium</td></tr><tr><td>4</td><td>P1</td><td>High / Urgent</td></tr></tbody></table>
+<p>Higher values = higher priority = more likely to be selected.</p>
+<h3 id="time-representation">Time Representation</h3>
+<ul>
+<li><strong>Dates</strong> — ISO 8601: <code>YYYY-MM-DD</code> (e.g., <code>2026-03-19</code>)</li>
+<li><strong>Timestamps</strong> — ISO 8601 with time: <code>2026-03-19T14:30:45.123Z</code></li>
+<li><strong>Time of day</strong> — minutes since midnight (integer). <code>0</code> = 00:00, <code>540</code> = 09:00, <code>1440</code> = 24:00. Values above 1440 represent the next day (e.g., <code>1560</code> = 02:00 next day).</li>
+<li><strong>Schedule blocks</strong> use 15-minute increments (0, 15, 30, 45, …).</li>
+</ul>
+<h3 id="colors">Colors</h3>
+<p>Always stored as hex strings (e.g., <code>"#b8256f"</code>). Todoist color names are converted to hex at the sync boundary.</p>
+<h3 id="sort-order">Sort Order</h3>
+<p>Collections use integer <code>sort_order</code> or <code>order</code> fields for explicit ordering. Lower values appear first.</p>
+<h2 id="write-mechanics">Write Mechanics</h2>
+<p>All vault writes use an <strong>atomic temp-file-rename</strong> pattern:</p>
+<ol>
+<li>Content is written to a temporary file (<code>.{random-hex}.tmp</code>) in the same directory</li>
+<li>The temp file is atomically renamed to the target path</li>
+<li>The file watcher marks self-writes to avoid reacting to its own changes (500ms debounce window)</li>
+</ol>
+<p>File watching uses <a href="https://github.com/paulmilldr/chokidar">chokidar</a> with a 200ms stability threshold. Dotfiles and <code>.tmp</code> files are ignored.</p>
+<hr>
+<h2 id="file-reference">File Reference</h2>
+<h3 id="tasksmd">tasks.md</h3>
+<p>Internal tasks (not from Todoist or other connectors).</p>
+<p><strong>Frontmatter key:</strong> <code>tasks</code>
+<strong>ID type:</strong> UUID</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>string</td><td>UUID primary key</td></tr><tr><td><code>project_id</code></td><td>string</td><td>References an internal project slug</td></tr><tr><td><code>content</code></td><td>string</td><td>Task title</td></tr><tr><td><code>description</code></td><td>string</td><td>Task details (empty string if none)</td></tr><tr><td><code>priority</code></td><td>number</td><td>0–4 (see priority scale; 0 = paused)</td></tr><tr><td><code>sort_order</code></td><td>number</td><td>Integer position within project</td></tr><tr><td><code>start_date</code></td><td>string | null</td><td>ISO date — when task becomes eligible</td></tr><tr><td><code>deadline_date</code></td><td>string | null</td><td>ISO date — deadline</td></tr><tr><td><code>is_completed</code></td><td>boolean</td><td>Completion status</td></tr><tr><td><code>completed_at</code></td><td>string | null</td><td>ISO timestamp when marked done</td></tr><tr><td><code>labels</code></td><td>string[]</td><td>Array of label slugs</td></tr><tr><td><code>created_at</code></td><td>string | undefined</td><td>ISO timestamp (optional)</td></tr><tr><td><code>depends_on</code></td><td>string[]</td><td>Task IDs this depends on (omitted if empty)</td></tr></tbody></table>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">tasks</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">123e4567-e89b-12d3-a456-426614174000</span></span>
+<span class="line"><span style="color:#85E89D">    project_id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">personal</span></span>
+<span class="line"><span style="color:#85E89D">    content</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Review Q1 planning</span></span>
+<span class="line"><span style="color:#85E89D">    description</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Go through quarterly goals</span></span>
+<span class="line"><span style="color:#85E89D">    priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">4</span></span>
+<span class="line"><span style="color:#85E89D">    sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0</span></span>
+<span class="line"><span style="color:#85E89D">    start_date</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
+<span class="line"><span style="color:#85E89D">    deadline_date</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-03-31"</span></span>
+<span class="line"><span style="color:#85E89D">    is_completed</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">false</span></span>
+<span class="line"><span style="color:#85E89D">    completed_at</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
+<span class="line"><span style="color:#85E89D">    labels</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">urgent</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">planning</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#85E89D">    created_at</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-03-15T09:30:00.000Z"</span></span></code></pre>
+<hr>
+<h3 id="projectsmd">projects.md</h3>
+<p>Internal projects (Todoist projects are transient and not stored in the vault).</p>
+<p><strong>Frontmatter key:</strong> <code>projects</code>
+<strong>ID type:</strong> Slug</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>string</td><td>Slug primary key (e.g., <code>personal-tasks</code>)</td></tr><tr><td><code>name</code></td><td>string</td><td>Display name</td></tr><tr><td><code>color</code></td><td>string</td><td>Hex color</td></tr><tr><td><code>is_sequential</code></td><td>boolean</td><td>When true, only the first non-completed task is eligible</td></tr><tr><td><code>order</code></td><td>number</td><td>Sort order</td></tr><tr><td><code>parent_id</code></td><td>string | null</td><td>Parent project ID for hierarchy</td></tr></tbody></table>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">projects</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">personal-tasks</span></span>
+<span class="line"><span style="color:#85E89D">    name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Personal Tasks</span></span>
+<span class="line"><span style="color:#85E89D">    color</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"#b8256f"</span></span>
+<span class="line"><span style="color:#85E89D">    is_sequential</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">false</span></span>
+<span class="line"><span style="color:#85E89D">    order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0</span></span>
+<span class="line"><span style="color:#85E89D">    parent_id</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">home-renovation</span></span>
+<span class="line"><span style="color:#85E89D">    name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Home Renovation</span></span>
+<span class="line"><span style="color:#85E89D">    color</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"#60a5fa"</span></span>
+<span class="line"><span style="color:#85E89D">    is_sequential</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">true</span></span>
+<span class="line"><span style="color:#85E89D">    order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1</span></span>
+<span class="line"><span style="color:#85E89D">    parent_id</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span></code></pre>
+<p>At runtime, a <code>source: 'internal'</code> field is added (not stored in the file).</p>
+<hr>
+<h3 id="presetsmd">presets.md</h3>
+<p>Named weight sets that shape the task probability pool, with schedule and location triggers.</p>
+<p><strong>Frontmatter key:</strong> <code>presets</code> (array of preset objects)
+<strong>Additional key:</strong> <code>system_activation_overrides</code> (Record&#x3C;string, ActivationMode>)
+<strong>ID type:</strong> Slug (presets)</p>
+<p>Labels are <strong>bare strings</strong> — there is no label registry or <code>labels.md</code> file. Labels are auto-discovered from usage across all task sources.</p>
+<h4 id="preset-fields">Preset fields</h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>string</td><td>Slug primary key</td></tr><tr><td><code>name</code></td><td>string</td><td>Display name</td></tr><tr><td><code>color</code></td><td>string</td><td>Hex color</td></tr><tr><td><code>sort_order</code></td><td>number</td><td>Sort order</td></tr><tr><td><code>activation_mode</code></td><td>string | undefined</td><td><code>'always_on'</code>, <code>'always_off'</code>, or <code>'triggers'</code> (default <code>'always_off'</code> for new presets)</td></tr><tr><td><code>trigger_mode</code></td><td>string | undefined</td><td><code>'all'</code> or <code>'any'</code> (default <code>'all'</code>, only relevant when <code>activation_mode</code> is <code>'triggers'</code>)</td></tr><tr><td><code>criteria_weights</code></td><td>Record&#x3C;string, number></td><td>Criterion string to weight multiplier mapping</td></tr><tr><td><code>default_weight</code></td><td>number</td><td>Weight for tasks matching no criteria (default 1)</td></tr><tr><td><code>schedule_blocks</code></td><td>ScheduleBlock[]</td><td>Time windows for trigger-based activation</td></tr><tr><td><code>location_rule</code></td><td>LocationRule | undefined</td><td>Geographic trigger rule</td></tr></tbody></table>
+<p>Criteria keys are bare strings — labels like <code>work</code>, <code>errands</code>, or auto-injected criteria like <code>priority:p1</code>, <code>due:overdue</code>, <code>deadline:today</code>, <code>assignee:me</code>, <code>last-commenter:others</code>.</p>
+<h4 id="scheduleblock-fields">ScheduleBlock fields</h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>string</td><td>UUID</td></tr><tr><td><code>preset_id</code></td><td>string</td><td>Parent preset slug</td></tr><tr><td><code>days</code></td><td>number[]</td><td>Days of week (0 = Monday, 6 = Sunday)</td></tr><tr><td><code>start_minutes</code></td><td>number</td><td>Start time (minutes since midnight, 15-min increments)</td></tr><tr><td><code>end_minutes</code></td><td>number</td><td>End time (can exceed 1440 for overnight)</td></tr></tbody></table>
+<h4 id="locationrule-fields">LocationRule fields</h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>lat</code></td><td>number</td><td>Latitude</td></tr><tr><td><code>lng</code></td><td>number</td><td>Longitude</td></tr><tr><td><code>radius_meters</code></td><td>number</td><td>Activation radius</td></tr><tr><td><code>mode</code></td><td>string</td><td><code>'inside'</code> or <code>'outside'</code></td></tr><tr><td><code>label</code></td><td>string | undefined</td><td>Geocoded place name for display</td></tr></tbody></table>
+<h4 id="system_activation_overrides">system_activation_overrides</h4>
+<p>System presets are defined in code (read-only rules). Only their activation mode can be overridden in the vault. The <code>system_activation_overrides</code> key maps system preset IDs to activation modes.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">presets</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">work</span></span>
+<span class="line"><span style="color:#85E89D">    name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Work</span></span>
+<span class="line"><span style="color:#85E89D">    color</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"#3b82f6"</span></span>
+<span class="line"><span style="color:#85E89D">    sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0</span></span>
+<span class="line"><span style="color:#85E89D">    activation_mode</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">triggers</span></span>
+<span class="line"><span style="color:#85E89D">    trigger_mode</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">all</span></span>
+<span class="line"><span style="color:#85E89D">    criteria_weights</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      work</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2</span></span>
+<span class="line"><span style="color:#85E89D">      personal</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.2</span></span>
+<span class="line"><span style="color:#9ECBFF">      "priority:p1"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">5</span></span>
+<span class="line"><span style="color:#85E89D">    default_weight</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.5</span></span>
+<span class="line"><span style="color:#85E89D">    schedule_blocks</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">a1b2c3d4-...</span></span>
+<span class="line"><span style="color:#85E89D">        preset_id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">work</span></span>
+<span class="line"><span style="color:#85E89D">        days</span><span style="color:#E1E4E8">: [</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">3</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">4</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#85E89D">        start_minutes</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">540</span></span>
+<span class="line"><span style="color:#85E89D">        end_minutes</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1020</span></span>
+<span class="line"><span style="color:#85E89D">    location_rule</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      lat</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">52.2297</span></span>
+<span class="line"><span style="color:#85E89D">      lng</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">21.0122</span></span>
+<span class="line"><span style="color:#85E89D">      radius_meters</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">500</span></span>
+<span class="line"><span style="color:#85E89D">      mode</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">inside</span></span>
+<span class="line"><span style="color:#85E89D">      label</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Office</span></span>
+<span class="line"><span style="color:#85E89D">system_activation_overrides</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#9ECBFF">  "system:defaults"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">always_on</span></span></code></pre>
+<hr>
+<h3 id="habitsdefinitionsmd">habits/definitions.md</h3>
+<p>Recurring habit definitions with scheduling rules.</p>
+<p><strong>Frontmatter key:</strong> <code>habits</code>
+<strong>ID type:</strong> Slug</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>string</td><td>Slug primary key</td></tr><tr><td><code>content</code></td><td>string</td><td>Habit title</td></tr><tr><td><code>description</code></td><td>string</td><td>Details</td></tr><tr><td><code>priority</code></td><td>number</td><td>0 = paused, 1–4 = P4 through P1</td></tr><tr><td><code>sort_order</code></td><td>number</td><td>Sort order</td></tr><tr><td><code>rrule</code></td><td>string</td><td>Recurrence rule (e.g., <code>"FREQ=DAILY"</code>)</td></tr><tr><td><code>time_window_start</code></td><td>number</td><td>Minutes since midnight when habit appears (default 540 = 9:00am)</td></tr><tr><td><code>linger_minutes</code></td><td>number</td><td>How long after occurrence to keep showing (default 960 = 16 hours)</td></tr><tr><td><code>day_window_start</code></td><td>number | null</td><td>Restrict to after this time of day</td></tr><tr><td><code>day_window_end</code></td><td>number | null</td><td>Restrict to before this time of day</td></tr><tr><td><code>created_at</code></td><td>string</td><td>ISO timestamp</td></tr><tr><td><code>labels</code></td><td>string[]</td><td>Label slugs</td></tr><tr><td><code>depends_on</code></td><td>string[]</td><td>Habit IDs this depends on (omitted if empty)</td></tr></tbody></table>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">habits</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">take-medication</span></span>
+<span class="line"><span style="color:#85E89D">    content</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Take medication</span></span>
+<span class="line"><span style="color:#85E89D">    description</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">""</span></span>
+<span class="line"><span style="color:#85E89D">    priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">4</span></span>
+<span class="line"><span style="color:#85E89D">    sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0</span></span>
+<span class="line"><span style="color:#85E89D">    rrule</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"FREQ=DAILY"</span></span>
+<span class="line"><span style="color:#85E89D">    time_window_start</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">480</span></span>
+<span class="line"><span style="color:#85E89D">    linger_minutes</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">240</span></span>
+<span class="line"><span style="color:#85E89D">    day_window_start</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
+<span class="line"><span style="color:#85E89D">    day_window_end</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
+<span class="line"><span style="color:#85E89D">    created_at</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-01-15T10:00:00.000Z"</span></span>
+<span class="line"><span style="color:#85E89D">    labels</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">health</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">lunch</span></span>
+<span class="line"><span style="color:#85E89D">    content</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Have lunch</span></span>
+<span class="line"><span style="color:#85E89D">    description</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">""</span></span>
+<span class="line"><span style="color:#85E89D">    priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">3</span></span>
+<span class="line"><span style="color:#85E89D">    sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1</span></span>
+<span class="line"><span style="color:#85E89D">    rrule</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"FREQ=DAILY"</span></span>
+<span class="line"><span style="color:#85E89D">    time_window_start</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">720</span></span>
+<span class="line"><span style="color:#85E89D">    linger_minutes</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">180</span></span>
+<span class="line"><span style="color:#85E89D">    day_window_start</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
+<span class="line"><span style="color:#85E89D">    day_window_end</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
+<span class="line"><span style="color:#85E89D">    created_at</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-01-15T10:00:00.000Z"</span></span>
+<span class="line"><span style="color:#85E89D">    labels</span><span style="color:#E1E4E8">: []</span></span></code></pre>
+<hr>
+<h3 id="habitsactivemd">habits/active.md</h3>
+<p>Active habit instances — created when a habit occurrence is due, removed when the linger window expires.</p>
+<p><strong>Frontmatter key:</strong> <code>instances</code>
+<strong>ID type:</strong> UUID</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>string</td><td>UUID primary key</td></tr><tr><td><code>habit_id</code></td><td>string</td><td>Parent habit slug</td></tr><tr><td><code>occurrence_date</code></td><td>string</td><td>ISO date of this occurrence</td></tr><tr><td><code>note</code></td><td>string</td><td>User note</td></tr><tr><td><code>encounter_count</code></td><td>number</td><td>Times this instance has been shown</td></tr><tr><td><code>created_at</code></td><td>string</td><td>ISO timestamp</td></tr></tbody></table>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">instances</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">abc12345-...</span></span>
+<span class="line"><span style="color:#85E89D">    habit_id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">take-medication</span></span>
+<span class="line"><span style="color:#85E89D">    occurrence_date</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-03-19"</span></span>
+<span class="line"><span style="color:#85E89D">    note</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">""</span></span>
+<span class="line"><span style="color:#85E89D">    encounter_count</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2</span></span>
+<span class="line"><span style="color:#85E89D">    created_at</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-03-19T08:00:00.000Z"</span></span></code></pre>
+<hr>
+<h3 id="calendarfeedsmd">calendar/feeds.md</h3>
+<p>ICS calendar feed configurations.</p>
+<p><strong>Frontmatter key:</strong> <code>feeds</code>
+<strong>ID type:</strong> UUID</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>string</td><td>UUID primary key</td></tr><tr><td><code>name</code></td><td>string</td><td>Display name</td></tr><tr><td><code>ics_url</code></td><td>string</td><td>ICS calendar URL</td></tr><tr><td><code>color</code></td><td>string</td><td>Hex color (default <code>"#60a5fa"</code>)</td></tr><tr><td><code>is_enabled</code></td><td>boolean</td><td>Enable/disable feed</td></tr><tr><td><code>sort_order</code></td><td>number</td><td>Sort order</td></tr></tbody></table>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">feeds</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">f1e2d3c4-...</span></span>
+<span class="line"><span style="color:#85E89D">    name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Work Calendar</span></span>
+<span class="line"><span style="color:#85E89D">    ics_url</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"https://calendar.example.com/feed.ics"</span></span>
+<span class="line"><span style="color:#85E89D">    color</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"#60a5fa"</span></span>
+<span class="line"><span style="color:#85E89D">    is_enabled</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">true</span></span>
+<span class="line"><span style="color:#85E89D">    sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0</span></span></code></pre>
+<hr>
+<h3 id="calendarrulesmd">calendar/rules.md</h3>
+<p>Rules that match calendar events and define prep steps.</p>
+<p><strong>Frontmatter key:</strong> <code>rules</code>
+<strong>ID type:</strong> UUID (rules and steps)</p>
+<h4 id="rule-fields">Rule fields</h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>string</td><td>UUID primary key</td></tr><tr><td><code>sort_order</code></td><td>number</td><td>Sort order (catch-all rules always last)</td></tr><tr><td><code>match_pattern</code></td><td>string</td><td>Pattern to match event summary</td></tr><tr><td><code>match_type</code></td><td>string</td><td><code>'contains'</code>, <code>'exact'</code>, or <code>'regex'</code></td></tr><tr><td><code>is_catch_all</code></td><td>boolean</td><td>Matches all unmatched events</td></tr><tr><td><code>steps</code></td><td>CalendarRuleStep[]</td><td>Prep steps for matched events</td></tr></tbody></table>
+<h4 id="calendarrulestep-fields">CalendarRuleStep fields</h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>string</td><td>UUID</td></tr><tr><td><code>rule_id</code></td><td>string</td><td>Parent rule UUID</td></tr><tr><td><code>sort_order</code></td><td>number</td><td>Sort order</td></tr><tr><td><code>name</code></td><td>string</td><td>Step title (e.g., “Anything to prepare?”)</td></tr><tr><td><code>hours_before</code></td><td>number</td><td>Hours before event to surface this step</td></tr><tr><td><code>priority</code></td><td>number</td><td>0–4 priority scale</td></tr><tr><td><code>labels</code></td><td>string[]</td><td>Labels applied to generated tasks</td></tr></tbody></table>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">rules</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">r1a2b3c4-...</span></span>
+<span class="line"><span style="color:#85E89D">    sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0</span></span>
+<span class="line"><span style="color:#85E89D">    match_pattern</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"standup"</span></span>
+<span class="line"><span style="color:#85E89D">    match_type</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">contains</span></span>
+<span class="line"><span style="color:#85E89D">    is_catch_all</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">false</span></span>
+<span class="line"><span style="color:#85E89D">    steps</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">s1a2b3c4-...</span></span>
+<span class="line"><span style="color:#85E89D">        rule_id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">r1a2b3c4-...</span></span>
+<span class="line"><span style="color:#85E89D">        sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0</span></span>
+<span class="line"><span style="color:#85E89D">        name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Review yesterday's progress</span></span>
+<span class="line"><span style="color:#85E89D">        hours_before</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2</span></span>
+<span class="line"><span style="color:#85E89D">        priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">3</span></span>
+<span class="line"><span style="color:#85E89D">        labels</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">work</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">r5e6f7g8-...</span></span>
+<span class="line"><span style="color:#85E89D">    sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">999</span></span>
+<span class="line"><span style="color:#85E89D">    match_pattern</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"*"</span></span>
+<span class="line"><span style="color:#85E89D">    match_type</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">contains</span></span>
+<span class="line"><span style="color:#85E89D">    is_catch_all</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">true</span></span>
+<span class="line"><span style="color:#85E89D">    steps</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">s5e6f7g8-...</span></span>
+<span class="line"><span style="color:#85E89D">        rule_id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">r5e6f7g8-...</span></span>
+<span class="line"><span style="color:#85E89D">        sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0</span></span>
+<span class="line"><span style="color:#85E89D">        name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Anything to prepare?</span></span>
+<span class="line"><span style="color:#85E89D">        hours_before</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">48</span></span>
+<span class="line"><span style="color:#85E89D">        priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2</span></span>
+<span class="line"><span style="color:#85E89D">        labels</span><span style="color:#E1E4E8">: []</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">s9a0b1c2-...</span></span>
+<span class="line"><span style="color:#85E89D">        rule_id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">r5e6f7g8-...</span></span>
+<span class="line"><span style="color:#85E89D">        sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1</span></span>
+<span class="line"><span style="color:#85E89D">        name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Anything else before this?</span></span>
+<span class="line"><span style="color:#85E89D">        hours_before</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2</span></span>
+<span class="line"><span style="color:#85E89D">        priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2</span></span>
+<span class="line"><span style="color:#85E89D">        labels</span><span style="color:#E1E4E8">: []</span></span></code></pre>
+<hr>
+<h3 id="calendaractivemd">calendar/active.md</h3>
+<p>Tracks which prep steps have been completed for upcoming events.</p>
+<p><strong>Frontmatter key:</strong> <code>prep_completions</code>
+<strong>ID type:</strong> UUID</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>string</td><td>UUID primary key</td></tr><tr><td><code>event_uid</code></td><td>string</td><td>Calendar event UID</td></tr><tr><td><code>event_start</code></td><td>string</td><td>ISO timestamp of event start</td></tr><tr><td><code>prep_step_id</code></td><td>string</td><td>Completed step UUID</td></tr><tr><td><code>completed_at</code></td><td>string</td><td>ISO timestamp when marked done</td></tr></tbody></table>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">prep_completions</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">c1d2e3f4-...</span></span>
+<span class="line"><span style="color:#85E89D">    event_uid</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"abc123@google.com"</span></span>
+<span class="line"><span style="color:#85E89D">    event_start</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-03-20T10:00:00.000Z"</span></span>
+<span class="line"><span style="color:#85E89D">    prep_step_id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">s1a2b3c4-...</span></span>
+<span class="line"><span style="color:#85E89D">    completed_at</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-03-19T14:00:00.000Z"</span></span></code></pre>
+<p>Completions are automatically cleaned up after the event has passed.</p>
+<hr>
+<h3 id="settingsmd">settings.md</h3>
+<p>App-level settings stored as a flat key-value document.</p>
+<p><strong>Frontmatter key:</strong> top-level keys (no collection wrapper)</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Key</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>todoist_token</code></td><td>string</td><td>Todoist API token</td></tr><tr><td><code>todoist_user_id</code></td><td>string</td><td>Todoist user ID</td></tr><tr><td><code>sound_enabled</code></td><td>string</td><td><code>'true'</code> or <code>'false'</code></td></tr><tr><td><code>analytics_enabled</code></td><td>string</td><td><code>'true'</code> or <code>'false'</code> (default <code>'true'</code>)</td></tr><tr><td><code>update_channel</code></td><td>string</td><td><code>'stable'</code> or <code>'beta'</code> (default <code>'stable'</code>)</td></tr><tr><td><code>connectors</code></td><td>object</td><td>Per-connector config (nested)</td></tr><tr><td><code>weight_assignee_match</code></td><td>string</td><td>Numeric string (default <code>'2'</code>)</td></tr><tr><td><code>weight_response_bonus</code></td><td>string</td><td>Numeric string (default <code>'2'</code>)</td></tr><tr><td><code>collaborator_assignee_weights</code></td><td>string</td><td>JSON object: collaborator ID to weight</td></tr><tr><td><code>collaborator_response_weights</code></td><td>string</td><td>JSON object: collaborator ID to weight</td></tr></tbody></table>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">todoist_token</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"abc123..."</span></span>
+<span class="line"><span style="color:#85E89D">todoist_user_id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"12345678"</span></span>
+<span class="line"><span style="color:#85E89D">sound_enabled</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"true"</span></span>
+<span class="line"><span style="color:#85E89D">analytics_enabled</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"true"</span></span></code></pre>
+<p>Note: values are stored as strings and parsed at read time.</p>
+<hr>
+<h3 id="profilemd">profile.md</h3>
+<p>User profile with running counters for the XP/leveling system.</p>
+<p><strong>Frontmatter key:</strong> top-level keys (no collection wrapper)</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>total_xp</code></td><td>number</td><td>Cumulative experience points (default 0)</td></tr><tr><td><code>level</code></td><td>number</td><td>Current level (default 1)</td></tr><tr><td><code>tasks_completed</code></td><td>number</td><td>Total tasks completed (default 0)</td></tr></tbody></table>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">total_xp</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">4250</span></span>
+<span class="line"><span style="color:#85E89D">level</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">7</span></span>
+<span class="line"><span style="color:#85E89D">tasks_completed</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">142</span></span></code></pre>
+<hr>
+<h3 id="journal-files">Journal Files</h3>
+<p><strong>Path:</strong> <code>dopadone/journal/YYYY/MM/YYYY-MM-DD.md</code></p>
+<p>Journal files use a heading-based format for entries:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#E1E4E8">---</span></span>
+<span class="line"><span style="color:#85E89D">date</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-03-19"</span></span>
+<span class="line"><span style="color:#E1E4E8">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF;font-weight:bold">## 09:30 Reviewed Q1 planning docs #work #planning</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">Made notes on three key areas that need attention.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF;font-weight:bold">## 10:15 Completed invoice batch #finance</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">Sent 5 invoices, total $12,400.</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">```yaml</span></span>
+<span class="line"><span style="color:#85E89D">amount</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">12400</span></span>
+<span class="line"><span style="color:#85E89D">count</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">5</span></span></code></pre>
+<h2 id="1400-quick-walk-health">14:00 Quick walk #health</h2>
+<p>No additional notes needed.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span></span></span>
+<span class="line"><span>#### Entry Structure</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Each `## ` heading starts a new entry. The format is:</span></span>
+<span class="line"><span></span></span></code></pre>
+<h2 id="hhmm-heading-text-tag1-tag2">[HH:MM] Heading text [#tag1 #tag2 …]</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span></span></span>
+<span class="line"><span>- **Time** (optional): `HH:MM` at the start of the heading</span></span>
+<span class="line"><span>- **Tags**: `#hashtags` extracted from the heading text</span></span>
+<span class="line"><span>- **Body**: Any text between headings</span></span>
+<span class="line"><span>- **YAML block**: Optional fenced YAML metadata within the body</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>The last 30 days of journal entries are indexed on startup and updated on file changes. Tags support single-tag and multi-tag AND queries.</span></span></code></pre> </div> </article>  </main> <footer class="footer" data-astro-cid-sz7xmlte> <div class="footer-inner container" data-astro-cid-sz7xmlte> <div class="footer-brand" data-astro-cid-sz7xmlte> <span class="footer-wordmark" data-astro-cid-sz7xmlte> <span class="wm-dopa" data-astro-cid-sz7xmlte>Dopa</span><span class="wm-done" data-astro-cid-sz7xmlte>Done</span> </span> <p class="footer-tagline" data-astro-cid-sz7xmlte>Focus. Complete. Level up.</p> </div> <div class="footer-links" data-astro-cid-sz7xmlte> <div class="footer-col" data-astro-cid-sz7xmlte> <h4 data-astro-cid-sz7xmlte>Product</h4> <a href="#download" data-astro-cid-sz7xmlte>Download</a> <a href="/vision" data-astro-cid-sz7xmlte>Vision</a> <a href="/docs" data-astro-cid-sz7xmlte>Docs</a> <a href="https://github.com/cielecki/dopadone/releases" target="_blank" rel="noopener" data-astro-cid-sz7xmlte>Changelog</a> <a href="https://github.com/cielecki/dopadone/blob/main/LICENSE.md" target="_blank" rel="noopener" data-astro-cid-sz7xmlte>License</a> </div> <div class="footer-col" data-astro-cid-sz7xmlte> <h4 data-astro-cid-sz7xmlte>Community</h4> <a href="https://github.com/cielecki/dopadone" target="_blank" rel="noopener" data-astro-cid-sz7xmlte>GitHub</a> <a href="https://github.com/cielecki/dopadone/issues" target="_blank" rel="noopener" data-astro-cid-sz7xmlte>Report a Bug</a> <a href="http://cielecki.com" target="_blank" rel="noopener" data-astro-cid-sz7xmlte>Author</a> </div> </div> </div> </footer>  <script type="module">(function(){const o="dopadone_dmg_url";function r(t){document.querySelectorAll('[data-download="dmg"]').forEach(function(n){n.setAttribute("href",t)})}try{const t=sessionStorage.getItem(o);if(t){const{url:n,ts:e}=JSON.parse(t);if(Date.now()-e<6e4){r(n);return}}}catch{}fetch("https://api.github.com/repos/cielecki/dopadone/releases/latest").then(function(t){return t.json()}).then(function(t){var n=t.assets||[],e=n.find(function(s){return s.name.endsWith(".dmg")});if(e&&e.browser_download_url){r(e.browser_download_url);try{sessionStorage.setItem(o,JSON.stringify({url:e.browser_download_url,ts:Date.now()}))}catch{}}}).catch(function(){})})();</script> </body> </html>
