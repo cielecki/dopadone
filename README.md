@@ -20,7 +20,10 @@ You have a backlog of boring-but-important tasks you can't make yourself do. Dop
 - **GitHub issues** — pull open issues from any repository as tasks
 - **Markdown vault tasks** — scan Obsidian-compatible files for checklist items with frontmatter
 - **Internal tasks & habits** — one-off tasks, recurring habits with time windows
+- **Habit stats** — track streaks, completion rates, and a 30-day heatmap for each habit
 - **Calendar prep tasks** — auto-generate from ICS feeds (Google Calendar, Outlook)
+- **Done for now** — temporarily hide tasks that aren't actionable right now; they auto-return when the source changes or the timer expires
+- **AI Coaching** — an AI coach suggests your literal next physical step when you're stuck, then reflects on your patterns after the run
 - **XP & leveling** — exponential progression with streaks and confetti celebrations
 - **Weighted random selection** — tasks chosen from an eligible pool based on priority multipliers and preset weights
 - **7 bonus categories** — priority, urgency, deadline, assigned, response, flow, preset
@@ -40,4 +43,3 @@ Also available from [GitHub Releases](https://github.com/cielecki/dopadone/relea
 ## Issues
 
 Found a bug? [Open an issue](https://github.com/cielecki/dopadone/issues).
-
