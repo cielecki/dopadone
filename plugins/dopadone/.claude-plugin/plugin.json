@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "dopadone",
+  "displayName": "DopaDone",
+  "version": "2.5.0",
+  "description": "Two surfaces over the dopadone engine. (1) A health-rhythm interrupt: a configurable 4-phase sleep schedule (work → wrap-up → evening-routine → sleep) woven into Claude Code sessions, plus all-day probabilistic habit reminders. Work hours stay silent; wrap-up adds soft non-blocking 'close your loops' nudges; evening-routine refuses work and persuades you toward your own wind-down routine; sleep is a near-total refusal escapable only by the override phrase. Minute-granular HH:MM boundaries. (2) The `/do` skill: a slot-machine that picks the next single task from your unified pool and walks it research → brief → one action → record. Both call the `dopadone` CLI.",
+  "author": {
+    "name": "Maciej Cielecki",
+    "email": "maciej.cielecki@10clouds.com"
+  },
+  "license": "MIT",
+  "keywords": ["health", "habits", "reminders", "wellness", "dopadone", "adhd"],
+  "userConfig": {
+    "dopadone_path": {
+      "type": "string",
+      "title": "Dopadone CLI path",
+      "description": "Path to the `dopadone` binary (or just 'dopadone' if it's on PATH). The plugin invokes `<path> habits agenda --json` on every prompt.",
+      "default": "dopadone"
+    },
+    "work_start": {
+      "type": "string",
+      "title": "Work start (HH:MM, local)",
+      "description": "When the sleep phase ends and the work phase begins. During work the sleep schedule is silent (only habit reminders fire). Format 'HH:MM', e.g. '07:00'.",
+      "default": "07:00"
+    },
+    "wrapup_start": {
+      "type": "string",
+      "title": "Wrap-up start (HH:MM, local)",
+      "description": "When the wrap-up phase begins: soft NON-BLOCKING nudges to close loops and wind the day down. Work continues uninterrupted. Format 'HH:MM', e.g. '22:00'.",
+      "default": "22:00"
+    },
+    "evening_start": {
+      "type": "string",
+      "title": "Evening-routine start (HH:MM, local)",
+      "description": "When the evening-routine phase begins: blocking interrupts that refuse further work, discover your wind-down routine from available data, and persuade against sleep debt. Format 'HH:MM', e.g. '23:00'.",
+      "default": "23:00"
+    },
+    "sleep_start": {
+      "type": "string",
+      "title": "Sleep start (HH:MM, local)",
+      "description": "When the sleep phase begins: near-total refusal of every prompt until work_start. The override phrase is the only escape. Format 'HH:MM', e.g. '23:30'.",
+      "default": "23:30"
+    },
+    "wrapup_intensity": {
+      "type": "number",
+      "title": "Wrap-up nudge intensity (%)",
+      "description": "Probability (0–100) that an eligible wrap-up turn emits a non-blocking 'wind the day down' nudge. Set 0 to disable the wrap-up channel.",
+      "default": 35
+    },
+    "evening_intensity": {
+      "type": "number",
+      "title": "Evening-routine intensity (%)",
+      "description": "Baseline probability (0–100) that an evening-routine turn fires a blocking work-refusal interrupt (max'd with habit urgency, capped at 99 so a retry storm can eventually pass).",
+      "default": 70
+    },
+    "wrapup_reminder_interval_minutes": {
+      "type": "number",
+      "title": "Wrap-up reminder interval (minutes)",
+      "description": "Minimum gap between wrap-up nudges per session, so they don't fire every turn. Independent of the time-marker and interrupt-cooldown clocks.",
+      "default": 15
+    },
+    "override_phrase": {
+      "type": "string",
+      "title": "Override phrase",
+      "description": "Phrase the user can include in any prompt to bypass the reminder block (e.g. 'wiem, override' / 'I know, override').",
+      "default": "wiem, override"
+    },
+    "language": {
+      "type": "string",
+      "title": "Reminder language",
+      "description": "Reserved for future use. v1.0 supports 'pl' only.",
+      "default": "pl"
+    },
+    "time_marker_interval_minutes": {
+      "type": "number",
+      "title": "Time-marker interval (minutes)",
+      "description": "If no interrupt or time-marker fired for this session in the last N minutes, inject a tiny <dopadone event=\"time-marker\" date=\"YYYY-MM-DD\" time=\"HH:MM\"/> so Claude doesn't lose track of wall-clock date/time. Set to 0 to disable.",
+      "default": 20
+    },
+    "interrupt_cooldown_minutes": {
+      "type": "number",
+      "title": "Per-interrupt cooldown (minutes)",
+      "description": "After an interrupt fires for a given habit (or sleep-mode), suppress further interrupts for the SAME key for N minutes. Cross-session — solves the 'same reminder fires on 3 parallel Claude chats' problem. Independent of dopadone snooze (which would affect other dopadone consumers). Set to 0 to disable.",
+      "default": 5
+    }
+  }
+}

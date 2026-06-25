@@ -1,0 +1,40 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'd=\"${CLAUDE_PLUGIN_DATA}/do\"; test -f \"$d/config.md\" || { mkdir -p \"$d\" && cp \"${CLAUDE_PLUGIN_ROOT}/skills/do/config.template.md\" \"$d/config.md\"; }'",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/bin/user-prompt.cjs\"",
+            "timeout": 8
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/bin/notification.cjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

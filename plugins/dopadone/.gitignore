@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+
+# Editor cruft
+*.swp
+*~
+.idea/
+.vscode/
+
+# Runtime state — never commit (logs may contain prompts)
+state/
+*.log
+
+# Test artefacts
+/tmp-test/
+
+# Node build tooling for the bash→TS rewrite (#289) — never commit
+node_modules/
+dist/
+
+# bin/ is the SHIPPED hook bundle (esbuild output, committed on purpose) — end
+# users run it via hooks.json without `pnpm install`, so it MUST be tracked.
+# (Intentionally NOT ignored — listed here only as a reminder of the contract.)
