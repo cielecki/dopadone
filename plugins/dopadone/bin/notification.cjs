@@ -6,7 +6,7 @@ var import_node_path2 = require("node:path");
 // ../../../dopadone/packages/core/dist/chunk-BG35VH7K.mjs
 var INACTIVITY_TIMEOUT_MS = 6 * 60 * 60 * 1e3;
 
-// ../../../dopadone/packages/core/dist/chunk-DWM3PCFE.mjs
+// ../../../dopadone/packages/core/dist/chunk-UG2FQ6HR.mjs
 var ALL_WEEKDAYS = [
   "MO",
   "TU",
@@ -2837,7 +2837,7 @@ function rdatesToString(param, rdates, tzid) {
   return "".concat(header).concat(dateString);
 }
 
-// ../../../dopadone/packages/core/dist/chunk-R4A325SN.mjs
+// ../../../dopadone/packages/core/dist/chunk-6BOHUCZM.mjs
 var BUILTIN_SLEEP_PHASES = [
   { id: "work", start: 7 * 60, formula: null },
   // 07:00 — silent, habits only
@@ -2925,7 +2925,7 @@ function loadConfig() {
     wrapupInterval: envInt("CLAUDE_PLUGIN_OPTION_WRAPUP_REMINDER_INTERVAL_MINUTES", 15),
     overridePhrase: envStr("CLAUDE_PLUGIN_OPTION_OVERRIDE_PHRASE", "wiem, override"),
     timeMarkerInterval: envInt("CLAUDE_PLUGIN_OPTION_TIME_MARKER_INTERVAL_MINUTES", 20),
-    interruptCooldownMinutes: envInt("CLAUDE_PLUGIN_OPTION_INTERRUPT_COOLDOWN_MINUTES", 5),
+    leaseTtlMinutes: envInt("CLAUDE_PLUGIN_OPTION_INTERRUPT_LEASE_TTL_MINUTES", 60),
     dataDir,
     retryFile: envStr("HR_RETRY_FILE", (0, import_node_path.join)(dataDir, "health-rhythm-retries.txt")),
     logFile: envStr("HR_LOG_FILE", (0, import_node_path.join)(dataDir, "health-rhythm-hook.log")),

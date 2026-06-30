@@ -3,8 +3,9 @@
  *
  * Three injection channels (all wrapped in <dopadone> XML): blocking interrupt
  * (probability-gated), non-blocking wrap-up reminder (wrapup phase), and a time-marker.
- * Flow order is load-bearing and mirrors the bash exactly: routine gate → override →
- * agenda fetch → mute → wrap-up channel → blocking channel (+cooldown) → time-marker.
+ * Flow order is load-bearing (extends the original bash with a native subagent gate +
+ * a cross-session lease): subagent gate → routine gate → override → agenda fetch → mute →
+ * wrap-up channel → blocking channel (+cross-session lease) → time-marker.
  *
  * `run()` takes injected clock / agenda-fetcher / RNG so it's deterministically
  * testable; `main()` wires the real stdin + clock + `dopadone` fetch + Math.random.
@@ -21,14 +22,14 @@ import { promptOverrides } from './override'
 import { bumpRetry, clearRetry } from './retry'
 import { detectRoutine, readTranscriptHead } from './routine-gate'
 import {
-  cooldownKey,
+  clearClaim,
   minutesSinceInject,
-  minutesSinceInterrupt,
   minutesSinceWrapup,
+  readClaim,
   recordInject,
-  recordInterrupt,
   recordWrapup,
   routineMarkerExists,
+  writeClaim,
   writeRoutineMarker
 } from './state'
 
@@ -36,6 +37,8 @@ export interface HookInput {
   prompt?: string
   session_id?: string
   transcript_path?: string
+  /** Native CC field present (truthy) ONLY when the hook fires inside a subagent (verified, binary v2.1.178). */
+  agent_id?: string
 }
 
 export interface RunOptions {
@@ -53,6 +56,12 @@ export function run(opts: RunOptions): void {
   const promptText = input.prompt ?? ''
   const sessionId = input.session_id ?? 'default'
   const transcriptPath = input.transcript_path ?? ''
+
+  // --- Subagent gate (interactive-human-only) ---
+  // The UPS hook ALSO fires inside Task/Agent subagents, carrying a native `agent_id`
+  // (verified in the CC binary, v2.1.178: `agent_id:q?.agentId`). A subagent must never
+  // get a health-rhythm injection nor claim a habit lease — it's not the human's chat.
+  if (input.agent_id) return
 
   // --- Routine gate (interactive-only) ---
   const transcriptHead = transcriptPath ? readTranscriptHead(transcriptPath) : null
@@ -93,21 +102,27 @@ export function run(opts: RunOptions): void {
   const p = finalPct(agenda, phase, config.eveningIntensity)
   let shouldInterrupt = p > 0 && rand() < p
 
-  // Cross-session cooldown gate — ONLY in the habit-driven phases (work / wrapup).
-  let cdKey = ''
-  if (
-    shouldInterrupt &&
-    config.interruptCooldownMinutes > 0 &&
-    (phase === 'work' || phase === 'wrapup')
-  ) {
-    cdKey = cooldownKey(pickFocusHabit(agenda), phase)
-    if (minutesSinceInterrupt(config.dataDir, cdKey, c.unixSec) < config.interruptCooldownMinutes) {
-      shouldInterrupt = false
+  // Cross-session lease ("token") — ONLY for the habit-driven phases (work / wrapup).
+  // The same habit reminder must not pile up across parallel chats: the first session to
+  // fire CLAIMS the habit; other sessions stay silent while that claim is fresh. The claim
+  // releases when its owner takes another turn (so the token can move on), or when it goes
+  // stale after leaseTtlMinutes (backstop if the owner abandons that chat).
+  const leaseHabitId =
+    phase === 'work' || phase === 'wrapup' ? (pickFocusHabit(agenda)?.id ?? '') : ''
+  if (leaseHabitId) {
+    const claim = readClaim(config.dataDir, leaseHabitId)
+    if (claim) {
+      if (claim.sessionId === sessionId) {
+        clearClaim(config.dataDir, leaseHabitId) // owner's next turn → release the token
+      } else if (c.unixSec - claim.ts < config.leaseTtlMinutes * 60) {
+        shouldInterrupt = false // another session holds a fresh lease → stay silent
+      }
+      // else: stale foreign claim → fall through and steal it below
     }
   }
 
   if (shouldInterrupt) {
-    if (cdKey) recordInterrupt(config.dataDir, cdKey, c.unixSec)
+    if (leaseHabitId) writeClaim(config.dataDir, leaseHabitId, sessionId, c.unixSec)
     const retry = bumpRetry(config.retryFile, c.unixSec)
     emitInterrupt(
       buildInterruptDirective(config, agenda, phase, retry),

@@ -20,7 +20,7 @@ export interface Config {
   wrapupInterval: number
   overridePhrase: string
   timeMarkerInterval: number
-  interruptCooldownMinutes: number
+  leaseTtlMinutes: number
   dataDir: string
   retryFile: string
   logFile: string
@@ -66,7 +66,7 @@ export function loadConfig(): Config {
     wrapupInterval: envInt('CLAUDE_PLUGIN_OPTION_WRAPUP_REMINDER_INTERVAL_MINUTES', 15),
     overridePhrase: envStr('CLAUDE_PLUGIN_OPTION_OVERRIDE_PHRASE', 'wiem, override'),
     timeMarkerInterval: envInt('CLAUDE_PLUGIN_OPTION_TIME_MARKER_INTERVAL_MINUTES', 20),
-    interruptCooldownMinutes: envInt('CLAUDE_PLUGIN_OPTION_INTERRUPT_COOLDOWN_MINUTES', 5),
+    leaseTtlMinutes: envInt('CLAUDE_PLUGIN_OPTION_INTERRUPT_LEASE_TTL_MINUTES', 60),
     dataDir,
     retryFile: envStr('HR_RETRY_FILE', join(dataDir, 'health-rhythm-retries.txt')),
     logFile: envStr('HR_LOG_FILE', join(dataDir, 'health-rhythm-hook.log')),

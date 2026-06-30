@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AgendaResponse } from './agenda'
 import { clockFrom } from './clock'
 import type { Config } from './config'
-import { routineMarkerExists } from './state'
+import { readClaim, routineMarkerExists } from './state'
 import { run } from './user-prompt'
 
 function makeConfig(dir: string): Config {
@@ -20,7 +20,7 @@ function makeConfig(dir: string): Config {
     wrapupInterval: 15,
     overridePhrase: 'wiem, override',
     timeMarkerInterval: 20,
-    interruptCooldownMinutes: 5,
+    leaseTtlMinutes: 60,
     dataDir: dir,
     retryFile: join(dir, 'retries.txt'),
     logFile: join(dir, 'hook.log'),
@@ -151,7 +151,7 @@ describe('run (integration)', () => {
     expect(ctx()).toContain('mode="work"')
   })
 
-  it('work: cooldown suppresses the same habit interrupt across sessions', () => {
+  it('work lease: a fresh claim by s1 silences the same habit interrupt in s2', () => {
     const cfg = makeConfig(dir)
     run({
       input: { prompt: 'hi', session_id: 's1' },
@@ -160,6 +160,7 @@ describe('run (integration)', () => {
       fetchAgenda: () => agenda(),
       rand: () => 0
     })
+    expect(ctx()).toContain('event="interrupt"') // s1 fires and claims the obiad lease
     writes.length = 0
     run({
       input: { prompt: 'hi', session_id: 's2' },
@@ -168,7 +169,93 @@ describe('run (integration)', () => {
       fetchAgenda: () => agenda(),
       rand: () => 0
     })
-    expect(out()).not.toContain('event="interrupt"') // suppressed by the obiad cooldown
+    expect(out()).not.toContain('event="interrupt"') // s2 silenced by s1's fresh lease
+  })
+
+  it('work lease: the owner is never blocked by its own claim (releases + re-claims)', () => {
+    const cfg = makeConfig(dir)
+    const fire = (sid: string) =>
+      run({
+        input: { prompt: 'hi', session_id: sid },
+        clock: WORK,
+        config: cfg,
+        fetchAgenda: () => agenda(),
+        rand: () => 0
+      })
+    fire('s1')
+    writes.length = 0
+    fire('s1')
+    expect(ctx()).toContain('event="interrupt"')
+  })
+
+  it('work lease: a non-firing owner turn releases the token, letting s2 claim next', () => {
+    const cfg = makeConfig(dir)
+    run({
+      input: { prompt: 'hi', session_id: 's1' },
+      clock: WORK,
+      config: cfg,
+      fetchAgenda: () => agenda(),
+      rand: () => 0
+    }) // s1 claims
+    run({
+      input: { prompt: 'hi', session_id: 's1' },
+      clock: WORK,
+      config: cfg,
+      fetchAgenda: () => agenda(),
+      rand: () => 99
+    }) // owner's turn, dice miss → release, no re-claim
+    expect(readClaim(dir, 'obiad')).toBeNull()
+    writes.length = 0
+    run({
+      input: { prompt: 'hi', session_id: 's2' },
+      clock: WORK,
+      config: cfg,
+      fetchAgenda: () => agenda(),
+      rand: () => 0
+    })
+    expect(ctx()).toContain('event="interrupt"') // s2 free to claim + fire
+  })
+
+  it('work lease: a stale foreign claim is stolen after the TTL, a fresh one is not', () => {
+    const cfg = makeConfig(dir)
+    run({
+      input: { prompt: 'hi', session_id: 's1' },
+      clock: WORK,
+      config: cfg,
+      fetchAgenda: () => agenda(),
+      rand: () => 0
+    }) // s1 claims at 13:00
+    writes.length = 0
+    run({
+      input: { prompt: 'hi', session_id: 's2' },
+      clock: clockFrom(new Date(2026, 5, 15, 13, 30, 0)),
+      config: cfg,
+      fetchAgenda: () => agenda(),
+      rand: () => 0
+    })
+    expect(out()).not.toContain('event="interrupt"') // 30 min: fresh → suppressed
+    writes.length = 0
+    run({
+      input: { prompt: 'hi', session_id: 's2' },
+      clock: clockFrom(new Date(2026, 5, 15, 14, 1, 0)),
+      config: cfg,
+      fetchAgenda: () => agenda(),
+      rand: () => 0
+    })
+    expect(ctx()).toContain('event="interrupt"') // 61 min: stale → stolen
+  })
+
+  it('subagent (agent_id present) → fully silent, claims nothing', () => {
+    const cfg = makeConfig(dir)
+    run({
+      input: { prompt: 'hi', session_id: 's1', agent_id: 'sub-abc' },
+      clock: WORK,
+      config: cfg,
+      fetchAgenda: () => agenda(),
+      rand: () => 0
+    })
+    expect(out()).toBe('')
+    expect(readClaim(dir, 'obiad')).toBeNull()
   })
 
   it('no interrupt + fresh session → time-marker', () => {

@@ -4,7 +4,7 @@ var import_node_fs5 = require("node:fs");
 // ../../../dopadone/packages/core/dist/chunk-BG35VH7K.mjs
 var INACTIVITY_TIMEOUT_MS = 6 * 60 * 60 * 1e3;
 
-// ../../../dopadone/packages/core/dist/chunk-DWM3PCFE.mjs
+// ../../../dopadone/packages/core/dist/chunk-UG2FQ6HR.mjs
 var ALL_WEEKDAYS = [
   "MO",
   "TU",
@@ -2835,7 +2835,7 @@ function rdatesToString(param, rdates, tzid) {
   return "".concat(header).concat(dateString);
 }
 
-// ../../../dopadone/packages/core/dist/chunk-R4A325SN.mjs
+// ../../../dopadone/packages/core/dist/chunk-6BOHUCZM.mjs
 var BUILTIN_SLEEP_PHASES = [
   { id: "work", start: 7 * 60, formula: null },
   // 07:00 — silent, habits only
@@ -2871,7 +2871,7 @@ function phaseIdAt(nowMin, b) {
   );
 }
 
-// ../../../dopadone/packages/core/dist/chunk-YIDKTWJH.mjs
+// ../../../dopadone/packages/core/dist/chunk-E74F5PDG.mjs
 function phaseBaselinePct(phase, eveningIntensity) {
   if (phase === "sleep") return 100;
   if (phase === "evening") return eveningIntensity;
@@ -2991,7 +2991,7 @@ function loadConfig() {
     wrapupInterval: envInt("CLAUDE_PLUGIN_OPTION_WRAPUP_REMINDER_INTERVAL_MINUTES", 15),
     overridePhrase: envStr("CLAUDE_PLUGIN_OPTION_OVERRIDE_PHRASE", "wiem, override"),
     timeMarkerInterval: envInt("CLAUDE_PLUGIN_OPTION_TIME_MARKER_INTERVAL_MINUTES", 20),
-    interruptCooldownMinutes: envInt("CLAUDE_PLUGIN_OPTION_INTERRUPT_COOLDOWN_MINUTES", 5),
+    leaseTtlMinutes: envInt("CLAUDE_PLUGIN_OPTION_INTERRUPT_LEASE_TTL_MINUTES", 60),
     dataDir,
     retryFile: envStr("HR_RETRY_FILE", (0, import_node_path.join)(dataDir, "health-rhythm-retries.txt")),
     logFile: envStr("HR_LOG_FILE", (0, import_node_path.join)(dataDir, "health-rhythm-hook.log")),
@@ -3232,8 +3232,8 @@ function sessionInjectPath(dataDir, sid) {
 function wrapupPath(dataDir, sid) {
   return (0, import_node_path4.join)(dataDir, `last-wrapup-${sanitizeKey(sid)}.txt`);
 }
-function cooldownPath(dataDir, key) {
-  return (0, import_node_path4.join)(dataDir, `interrupt-cooldown-${sanitizeKey(key)}.txt`);
+function claimPath(dataDir, habitId) {
+  return (0, import_node_path4.join)(dataDir, `interrupt-claim-${sanitizeKey(habitId)}.txt`);
 }
 function routineMarkerPath(dataDir, sid) {
   return (0, import_node_path4.join)(dataDir, `routine-session-${sanitizeKey(sid)}.txt`);
@@ -3250,14 +3250,26 @@ function minutesSinceWrapup(dataDir, sid, nowSec) {
 function recordWrapup(dataDir, sid, nowSec) {
   writeTs(wrapupPath(dataDir, sid), nowSec);
 }
-function minutesSinceInterrupt(dataDir, key, nowSec) {
-  return minutesSince(cooldownPath(dataDir, key), nowSec);
+function readClaim(dataDir, habitId) {
+  const file = claimPath(dataDir, habitId);
+  if (!(0, import_node_fs4.existsSync)(file)) return null;
+  try {
+    const o = JSON.parse((0, import_node_fs4.readFileSync)(file, "utf8"));
+    return typeof o.sessionId === "string" && typeof o.ts === "number" ? { sessionId: o.sessionId, ts: o.ts } : null;
+  } catch {
+    return null;
+  }
 }
-function recordInterrupt(dataDir, key, nowSec) {
-  writeTs(cooldownPath(dataDir, key), nowSec);
+function writeClaim(dataDir, habitId, sessionId, nowSec) {
+  const file = claimPath(dataDir, habitId);
+  (0, import_node_fs4.mkdirSync)((0, import_node_path4.dirname)(file), { recursive: true });
+  (0, import_node_fs4.writeFileSync)(file, JSON.stringify({ sessionId, ts: nowSec }));
 }
-function cooldownKey(focus, mode) {
-  return focus ? focus.id : `mode:${mode}`;
+function clearClaim(dataDir, habitId) {
+  try {
+    (0, import_node_fs4.rmSync)(claimPath(dataDir, habitId), { force: true });
+  } catch {
+  }
 }
 function writeRoutineMarker(dataDir, sid) {
   (0, import_node_fs4.mkdirSync)(dataDir, { recursive: true });
@@ -3273,6 +3285,7 @@ function run(opts) {
   const promptText = input.prompt ?? "";
   const sessionId = input.session_id ?? "default";
   const transcriptPath = input.transcript_path ?? "";
+  if (input.agent_id) return;
   const transcriptHead = transcriptPath ? readTranscriptHead(transcriptPath) : null;
   if (detectRoutine(promptText, transcriptHead)) {
     writeRoutineMarker(config.dataDir, sessionId);
@@ -3302,15 +3315,19 @@ function run(opts) {
   }
   const p = finalPct(agenda, phase, config.eveningIntensity);
   let shouldInterrupt = p > 0 && rand() < p;
-  let cdKey = "";
-  if (shouldInterrupt && config.interruptCooldownMinutes > 0 && (phase === "work" || phase === "wrapup")) {
-    cdKey = cooldownKey(pickFocusHabit(agenda), phase);
-    if (minutesSinceInterrupt(config.dataDir, cdKey, c.unixSec) < config.interruptCooldownMinutes) {
-      shouldInterrupt = false;
+  const leaseHabitId = phase === "work" || phase === "wrapup" ? pickFocusHabit(agenda)?.id ?? "" : "";
+  if (leaseHabitId) {
+    const claim = readClaim(config.dataDir, leaseHabitId);
+    if (claim) {
+      if (claim.sessionId === sessionId) {
+        clearClaim(config.dataDir, leaseHabitId);
+      } else if (c.unixSec - claim.ts < config.leaseTtlMinutes * 60) {
+        shouldInterrupt = false;
+      }
     }
   }
   if (shouldInterrupt) {
-    if (cdKey) recordInterrupt(config.dataDir, cdKey, c.unixSec);
+    if (leaseHabitId) writeClaim(config.dataDir, leaseHabitId, sessionId, c.unixSec);
     const retry = bumpRetry(config.retryFile, c.unixSec);
     emitInterrupt(
       buildInterruptDirective(config, agenda, phase, retry),

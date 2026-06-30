@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "dopadone",
   "displayName": "DopaDone",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "Two surfaces over the dopadone engine. (1) A health-rhythm interrupt: a configurable 4-phase sleep schedule (work → wrap-up → evening-routine → sleep) woven into Claude Code sessions, plus all-day probabilistic habit reminders. Work hours stay silent; wrap-up adds soft non-blocking 'close your loops' nudges; evening-routine refuses work and persuades you toward your own wind-down routine; sleep is a near-total refusal escapable only by the override phrase. Minute-granular HH:MM boundaries. (2) The `/do` skill: a slot-machine that picks the next single task from your unified pool and walks it research → brief → one action → record. Both call the `dopadone` CLI.",
   "author": {
     "name": "Maciej Cielecki",
@@ -56,7 +56,7 @@
     "wrapup_reminder_interval_minutes": {
       "type": "number",
       "title": "Wrap-up reminder interval (minutes)",
-      "description": "Minimum gap between wrap-up nudges per session, so they don't fire every turn. Independent of the time-marker and interrupt-cooldown clocks.",
+      "description": "Minimum gap between wrap-up nudges per session, so they don't fire every turn. Independent of the time-marker and interrupt-lease clocks.",
       "default": 15
     },
     "override_phrase": {
@@ -77,11 +77,11 @@
       "description": "If no interrupt or time-marker fired for this session in the last N minutes, inject a tiny <dopadone event=\"time-marker\" date=\"YYYY-MM-DD\" time=\"HH:MM\"/> so Claude doesn't lose track of wall-clock date/time. Set to 0 to disable.",
       "default": 20
     },
-    "interrupt_cooldown_minutes": {
+    "interrupt_lease_ttl_minutes": {
       "type": "number",
-      "title": "Per-interrupt cooldown (minutes)",
-      "description": "After an interrupt fires for a given habit (or sleep-mode), suppress further interrupts for the SAME key for N minutes. Cross-session — solves the 'same reminder fires on 3 parallel Claude chats' problem. Independent of dopadone snooze (which would affect other dopadone consumers). Set to 0 to disable.",
-      "default": 5
+      "title": "Interrupt lease TTL (minutes)",
+      "description": "Cross-session 'token' lease: the first chat to fire a habit reminder CLAIMS it; parallel chats stay silent while that claim is fresh, so the same reminder no longer piles up across N parallel Claude sessions. The claim releases when its owner chat takes another turn, or goes stale after this many minutes (backstop if the owner abandons that chat). Replaces the old per-interrupt cooldown.",
+      "default": 60
     }
   }
 }
