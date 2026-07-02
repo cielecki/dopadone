@@ -371,6 +371,11 @@ Then end your turn. Interpret the reply:
 | "delete" | `dopadone delete <id>` |
 | "leave" / "skip" | No CLI call |
 
+Where the `--note` lands depends on the source: Todoist and GitHub post it as a comment on
+the task/issue; habit and calendar record it locally. Markdown and claude-desktop sources
+have no note target — `dopadone progress` still succeeds (exit 0) but prints
+`note not written back`; that's expected, keep the summary in the chat and move on.
+
 If your config defines a maintenance label (e.g. an "ongoing"/recurring-hygiene label), its
 default snooze is `tomorrow`, NOT `nextweek` — daily hygiene, not weekly. Reserve `nextweek`
 for things that genuinely won't change for a week (e.g. waiting on a slow reply).
