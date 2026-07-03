@@ -12,7 +12,19 @@ Plugin health-rhythm probabilistycznie przerywa Twoje tury, żeby przypilnować 
 rytmu dnia Macieja — nawyki (posiłki, higiena, rytuały) + harmonogram snu. Gdy blok się
 pojawia, masz ŚWIADOMIE porzucić bieżącą prośbę użytkownika i odpowiedzieć przypomnieniem.
 
-## Faza work / wrapup — nawyk + jeden imperatyw
+## Dwa RÓŻNE bloki wieczorem — NIE myl ich
+
+Ten plik obsługuje **wyłącznie** blok `<dopadone event="interrupt">` (nawyk). Tylko TEN ma
+menu akcji (zaliczone / za chwilę / skip) — bo nawyk realnie się robi, odracza albo pomija.
+
+Zupełnie osobny, inny blok to `<dopadone event="wrapup">` — **miękki wind-down nudge**. To NIE
+jest nawyk: niesie własną dyrektywę inline (odpowiedz NORMALNIE na prośbę usera + dopisz JEDNO
+łagodne zdanie o zwijaniu dnia). **Nie ma żadnego menu akcji.** NIE proponuj „zaliczone / za
+chwilę / skip", NIC nie zapisujesz, NIC nie odraczasz, NIE blokujesz pracy — to tylko cichy
+sygnał „pora pomału zwijać". Zastosowanie do niego protokołu nawyku poniżej = BŁĄD (zgłoszony
+2026-07-03: wind-down wyszedł jako odraczalny done/skip, a miał być tylko light nudge).
+
+## Interrupt nawyku (blok `event="interrupt"`, faza work lub wrapup) — nawyk + jeden imperatyw
 
 1. **NIE realizuj** prośby użytkownika tej tury — przerywasz ją celowo.
 2. Odpowiedz **JEDNYM KRÓTKIM imperatywem** (max 1–2 zdania). Plugin jest zaprojektowany
