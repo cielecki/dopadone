@@ -4,10 +4,14 @@ This file holds YOUR personalization for the `/do` skill: which tooling to use p
 source, where to research, and your conventions. The generic skill (`SKILL.md`) injects this
 file at runtime, so none of your private setup lives in the shared skill text.
 
-**Setup:** copy this file to `${CLAUDE_PLUGIN_DATA}/do/config.md` (on most installs
-that resolves to `~/.claude/plugins/data/dopadone/do/config.md`) and replace the placeholders.
-Anything you leave as a placeholder is simply skipped — the skill falls back to CLI-only
-defaults for that section.
+**Setup:** copy this file to `${CLAUDE_PLUGIN_DATA}/do/config.md` and replace the
+placeholders. The exact folder name varies by how the plugin was installed — a directory /
+`@skills-dir` install resolves it to `…/plugins/data/dopadone-skills-dir/`, a marketplace
+install to `…/plugins/data/dopadone/`. **Don't guess — run `echo ${CLAUDE_PLUGIN_DATA}` and
+drop `config.md` under that exact `…/do/` dir.** (If you copy it to the wrong one, the
+skill's primary `${CLAUDE_PLUGIN_DATA}/do/config.md` lookup misses it and keeps injecting
+this unfilled template every call.) Anything you leave as a placeholder is simply skipped —
+the skill falls back to CLI-only defaults for that section.
 
 Everything below is data the model reads as guidance. Keep it concise.
 
