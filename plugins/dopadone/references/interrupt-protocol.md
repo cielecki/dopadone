@@ -42,6 +42,7 @@ sygnał „pora pomału zwijać". Zastosowanie do niego protokołu nawyku poniż
    po polsku:
    - zaliczone → `dopadone habits done <id>`
    - za chwilę → `dopadone plan move <id> <HH:MM>` (~30 min później; jeśli nawyk nie jest na planie: `dopadone plan add <id>` najpierw). Per-habit `snooze` wycofany (#281/#289) — defer idzie przez plan.
+     - **Grammar planu (nie zgaduj):** podgląd = `dopadone plan list` (NIE `show`); potem `add <id>` → `move <id> <HH:MM>`. UWAGA: `plan --help` jest niekompletny (pomija `move`) — ta linijka jest źródłem prawdy, nie `--help`.
    - skip dziś → `dopadone habits decline <id>`
 
 ### Opis nawyku — notatka ALBO instrukcja dla Ciebie (użyj osądu)
