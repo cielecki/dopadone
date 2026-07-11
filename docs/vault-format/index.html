@@ -9,11 +9,11 @@
 <span class="line"><span>    ├── tasks.md                    # Internal tasks</span></span>
 <span class="line"><span>    ├── projects.md                 # Internal projects</span></span>
 <span class="line"><span>    ├── presets.md                  # Weight presets, schedules, location rules</span></span>
-<span class="line"><span>    ├── settings.md                 # App settings</span></span>
+<span class="line"><span>    ├── settings.md                 # App settings + connector instances (habit definitions live here)</span></span>
 <span class="line"><span>    ├── profile.md                  # User profile (XP, level, stats)</span></span>
-<span class="line"><span>    ├── habits/</span></span>
-<span class="line"><span>    │   ├── definitions.md          # Habit definitions</span></span>
-<span class="line"><span>    │   └── active.md               # Active habit instances</span></span>
+<span class="line"><span>    ├── habits/                     # Runtime state only — definitions live in settings.md</span></span>
+<span class="line"><span>    │   ├── active.md               # Active habit instances</span></span>
+<span class="line"><span>    │   └── completions-YYYY-MM.md  # Monthly completion log</span></span>
 <span class="line"><span>    ├── calendar/</span></span>
 <span class="line"><span>    │   ├── feeds.md                # Calendar feed configs</span></span>
 <span class="line"><span>    │   ├── rules.md                # Event-matching rules + prep steps</span></span>
@@ -446,10 +446,13 @@
 <span class="line"><span style="color:#85E89D">system_activation_overrides</span><span style="color:#E1E4E8">:</span></span>
 <span class="line"><span style="color:#9ECBFF">  "system:defaults"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">always_on</span></span></code></pre>
 <hr>
-<h3 id="habitsdefinitionsmd">habits/definitions.md</h3>
-<p>Recurring habit definitions with scheduling rules.</p>
-<p><strong>Frontmatter key:</strong> <code>habits</code>
-<strong>ID type:</strong> Slug</p>
+<h3 id="habit-definitions--in-settingsmd-not-a-standalone-file">Habit definitions — in <code>settings.md</code>, not a standalone file</h3>
+<p>Habit definitions are <strong>not</strong> stored in a <code>habits/definitions.md</code> file (that file does not exist). They live inside <code>settings.md</code>, nested under the <code>connector_instances</code> array: the single instance whose <code>connector_type</code> is <code>"habit"</code> (<code>maxInstances: 1</code>) keeps its habit array in <code>config.habits[]</code>.</p>
+<ul>
+<li><strong>Loaded by</strong> <code>VaultSettingsService.getConnectorInstances()</code> (reads <code>dopadone/settings.md</code>), then <code>config.habits</code> off the <code>habit</code> instance. The habit connector (<code>getHabitsFromInst</code> → <code>inst.config.habits</code>), the CLI health-rhythm loader (<code>apps/cli/src/commands/habits.ts</code> → <code>loadHabits</code>), and the desktop IPC handlers all read from this one path.</li>
+<li><strong>Written by</strong> the habit connector’s plugin handlers, which mutate <code>inst.config.habits</code> and persist the whole instance via <code>saveConnectorInstance</code> — so editing a habit rewrites the <code>habit</code> entry inside <code>settings.md</code>.</li>
+</ul>
+<p><strong>ID type:</strong> Slug</p>
 
 
 
@@ -525,32 +528,49 @@
 
 
 
-<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>string</td><td>Slug primary key</td></tr><tr><td><code>content</code></td><td>string</td><td>Habit title</td></tr><tr><td><code>description</code></td><td>string</td><td>Details</td></tr><tr><td><code>priority</code></td><td>number</td><td>0 = paused, 1–4 = P4 through P1</td></tr><tr><td><code>sort_order</code></td><td>number</td><td>Sort order</td></tr><tr><td><code>rrule</code></td><td>string</td><td>Recurrence rule (e.g., <code>"FREQ=DAILY"</code>)</td></tr><tr><td><code>time_window_start</code></td><td>number</td><td>Minutes since midnight when habit appears (default 540 = 9:00am)</td></tr><tr><td><code>linger_minutes</code></td><td>number</td><td>How long after occurrence to keep showing (default 960 = 16 hours)</td></tr><tr><td><code>day_window_start</code></td><td>number | null</td><td>Restrict to after this time of day</td></tr><tr><td><code>day_window_end</code></td><td>number | null</td><td>Restrict to before this time of day</td></tr><tr><td><code>created_at</code></td><td>string</td><td>ISO timestamp</td></tr><tr><td><code>labels</code></td><td>string[]</td><td>Label slugs</td></tr><tr><td><code>depends_on</code></td><td>string[]</td><td>Habit IDs this depends on (omitted if empty)</td></tr></tbody></table>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">habits</span><span style="color:#E1E4E8">:</span></span>
-<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">take-medication</span></span>
-<span class="line"><span style="color:#85E89D">    content</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Take medication</span></span>
-<span class="line"><span style="color:#85E89D">    description</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">""</span></span>
-<span class="line"><span style="color:#85E89D">    priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">4</span></span>
-<span class="line"><span style="color:#85E89D">    sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0</span></span>
-<span class="line"><span style="color:#85E89D">    rrule</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"FREQ=DAILY"</span></span>
-<span class="line"><span style="color:#85E89D">    time_window_start</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">480</span></span>
-<span class="line"><span style="color:#85E89D">    linger_minutes</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">240</span></span>
-<span class="line"><span style="color:#85E89D">    day_window_start</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
-<span class="line"><span style="color:#85E89D">    day_window_end</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
-<span class="line"><span style="color:#85E89D">    created_at</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-01-15T10:00:00.000Z"</span></span>
-<span class="line"><span style="color:#85E89D">    labels</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">health</span><span style="color:#E1E4E8">]</span></span>
-<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">lunch</span></span>
-<span class="line"><span style="color:#85E89D">    content</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Have lunch</span></span>
-<span class="line"><span style="color:#85E89D">    description</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">""</span></span>
-<span class="line"><span style="color:#85E89D">    priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">3</span></span>
-<span class="line"><span style="color:#85E89D">    sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1</span></span>
-<span class="line"><span style="color:#85E89D">    rrule</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"FREQ=DAILY"</span></span>
-<span class="line"><span style="color:#85E89D">    time_window_start</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">720</span></span>
-<span class="line"><span style="color:#85E89D">    linger_minutes</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">180</span></span>
-<span class="line"><span style="color:#85E89D">    day_window_start</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
-<span class="line"><span style="color:#85E89D">    day_window_end</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
-<span class="line"><span style="color:#85E89D">    created_at</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-01-15T10:00:00.000Z"</span></span>
-<span class="line"><span style="color:#85E89D">    labels</span><span style="color:#E1E4E8">: []</span></span></code></pre>
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>string</td><td>Slug primary key</td></tr><tr><td><code>content</code></td><td>string</td><td>Habit title</td></tr><tr><td><code>description</code></td><td>string</td><td>Details</td></tr><tr><td><code>priority</code></td><td>number</td><td>0 = paused, 1–4 = P4 through P1</td></tr><tr><td><code>sort_order</code></td><td>number</td><td>Sort order</td></tr><tr><td><code>rrule</code></td><td>string</td><td>Recurrence rule (e.g., <code>"FREQ=DAILY"</code>)</td></tr><tr><td><code>time_window_start</code></td><td>number</td><td>Minutes since midnight when habit appears (default 540 = 9:00am)</td></tr><tr><td><code>linger_minutes</code></td><td>number</td><td>How long after occurrence to keep showing (default 960 = 16 hours)</td></tr><tr><td><code>day_window_start</code></td><td>number | null</td><td>Restrict to after this time of day</td></tr><tr><td><code>day_window_end</code></td><td>number | null</td><td>Restrict to before this time of day</td></tr><tr><td><code>created_at</code></td><td>string</td><td>ISO timestamp</td></tr><tr><td><code>labels</code></td><td>string[]</td><td>Label slugs</td></tr><tr><td><code>depends_on</code></td><td>string[]</td><td>Habit IDs this depends on (omitted if empty)</td></tr><tr><td><code>formula</code></td><td>string | null</td><td><em>(optional, #278)</em> Enforcement formula (“faktura”) serialized onto the habit’s plan floor item; absent/null = soft nudge</td></tr><tr><td><code>immovable</code></td><td>boolean</td><td><em>(optional, #314)</em> Marks the plan floor item immovable — a fixed-time ritual <code>plan move</code> won’t reschedule without <code>--force</code>; absent/false = freely movable</td></tr></tbody></table>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># Inside settings.md — under connector_instances, on the connector_type: habit instance</span></span>
+<span class="line"><span style="color:#85E89D">connector_instances</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">habit</span></span>
+<span class="line"><span style="color:#85E89D">    connector_type</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">habit</span></span>
+<span class="line"><span style="color:#85E89D">    display_name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Habits</span></span>
+<span class="line"><span style="color:#85E89D">    enabled</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">true</span></span>
+<span class="line"><span style="color:#85E89D">    config</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      habits</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">take-medication</span></span>
+<span class="line"><span style="color:#85E89D">          content</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Take medication</span></span>
+<span class="line"><span style="color:#85E89D">          description</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">""</span></span>
+<span class="line"><span style="color:#85E89D">          priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">4</span></span>
+<span class="line"><span style="color:#85E89D">          sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0</span></span>
+<span class="line"><span style="color:#85E89D">          rrule</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"FREQ=DAILY"</span></span>
+<span class="line"><span style="color:#85E89D">          time_window_start</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">480</span></span>
+<span class="line"><span style="color:#85E89D">          linger_minutes</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">240</span></span>
+<span class="line"><span style="color:#85E89D">          day_window_start</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
+<span class="line"><span style="color:#85E89D">          day_window_end</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
+<span class="line"><span style="color:#85E89D">          created_at</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-01-15T10:00:00.000Z"</span></span>
+<span class="line"><span style="color:#85E89D">          labels</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">health</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">        - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">lunch</span></span>
+<span class="line"><span style="color:#85E89D">          content</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Have lunch</span></span>
+<span class="line"><span style="color:#85E89D">          description</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">""</span></span>
+<span class="line"><span style="color:#85E89D">          priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">3</span></span>
+<span class="line"><span style="color:#85E89D">          sort_order</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1</span></span>
+<span class="line"><span style="color:#85E89D">          rrule</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"FREQ=DAILY"</span></span>
+<span class="line"><span style="color:#85E89D">          time_window_start</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">720</span></span>
+<span class="line"><span style="color:#85E89D">          linger_minutes</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">180</span></span>
+<span class="line"><span style="color:#85E89D">          day_window_start</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
+<span class="line"><span style="color:#85E89D">          day_window_end</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">null</span></span>
+<span class="line"><span style="color:#85E89D">          created_at</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-01-15T10:00:00.000Z"</span></span>
+<span class="line"><span style="color:#85E89D">          labels</span><span style="color:#E1E4E8">: []</span></span></code></pre>
 <hr>
 <h3 id="habitsactivemd">habits/active.md</h3>
 <p>Active habit instances — created when a habit occurrence is due, removed when the linger window expires.</p>
@@ -604,6 +624,59 @@
 <span class="line"><span style="color:#85E89D">    note</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">""</span></span>
 <span class="line"><span style="color:#85E89D">    encounter_count</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2</span></span>
 <span class="line"><span style="color:#85E89D">    created_at</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-03-19T08:00:00.000Z"</span></span></code></pre>
+<hr>
+<h3 id="habitscompletions-yyyy-mmmd">habits/completions-YYYY-MM.md</h3>
+<p>Runtime completion log for habits, sharded into <strong>monthly</strong> files (<code>completions-2026-03.md</code>, <code>completions-2026-04.md</code>, …). One <code>done</code>/<code>declined</code> outcome per habit occurrence.</p>
+<p><strong>Frontmatter key:</strong> <code>completions</code>
+<strong>ID type:</strong> UUID</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>string</td><td>UUID primary key</td></tr><tr><td><code>habit_id</code></td><td>string</td><td>Parent habit slug</td></tr><tr><td><code>occurrence_date</code></td><td>string</td><td>ISO date of the occurrence this outcome resolves</td></tr><tr><td><code>status</code></td><td>string</td><td><code>'done'</code> or <code>'declined'</code></td></tr><tr><td><code>comment</code></td><td>string</td><td>User note</td></tr><tr><td><code>completed_at</code></td><td>string</td><td>ISO timestamp when marked</td></tr></tbody></table>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">completions</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">d4e5f6a7-...</span></span>
+<span class="line"><span style="color:#85E89D">    habit_id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">take-medication</span></span>
+<span class="line"><span style="color:#85E89D">    occurrence_date</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-03-19"</span></span>
+<span class="line"><span style="color:#85E89D">    status</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">done</span></span>
+<span class="line"><span style="color:#85E89D">    comment</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">""</span></span>
+<span class="line"><span style="color:#85E89D">    completed_at</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2026-03-19T08:15:00.000Z"</span></span></code></pre>
 <hr>
 <h3 id="calendarfeedsmd">calendar/feeds.md</h3>
 <p>ICS calendar feed configurations.</p>
@@ -897,7 +970,7 @@
 
 
 
-<table><thead><tr><th>Key</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>todoist_token</code></td><td>string</td><td>Todoist API token</td></tr><tr><td><code>todoist_user_id</code></td><td>string</td><td>Todoist user ID</td></tr><tr><td><code>sound_enabled</code></td><td>string</td><td><code>'true'</code> or <code>'false'</code></td></tr><tr><td><code>analytics_enabled</code></td><td>string</td><td><code>'true'</code> or <code>'false'</code> (default <code>'true'</code>)</td></tr><tr><td><code>update_channel</code></td><td>string</td><td><code>'stable'</code> or <code>'beta'</code> (default <code>'stable'</code>)</td></tr><tr><td><code>connectors</code></td><td>object</td><td>Per-connector config (nested)</td></tr><tr><td><code>weight_assignee_match</code></td><td>string</td><td>Numeric string (default <code>'2'</code>)</td></tr><tr><td><code>weight_response_bonus</code></td><td>string</td><td>Numeric string (default <code>'2'</code>)</td></tr><tr><td><code>collaborator_assignee_weights</code></td><td>string</td><td>JSON object: collaborator ID to weight</td></tr><tr><td><code>collaborator_response_weights</code></td><td>string</td><td>JSON object: collaborator ID to weight</td></tr></tbody></table>
+<table><thead><tr><th>Key</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>todoist_token</code></td><td>string</td><td>Todoist API token</td></tr><tr><td><code>todoist_user_id</code></td><td>string</td><td>Todoist user ID</td></tr><tr><td><code>sound_enabled</code></td><td>string</td><td><code>'true'</code> or <code>'false'</code></td></tr><tr><td><code>analytics_enabled</code></td><td>string</td><td><code>'true'</code> or <code>'false'</code> (default <code>'true'</code>)</td></tr><tr><td><code>update_channel</code></td><td>string</td><td><code>'stable'</code> or <code>'beta'</code> (default <code>'stable'</code>)</td></tr><tr><td><code>connector_instances</code></td><td>ConnectorInstanceConfig[]</td><td>Configured task-source instances (Todoist / Markdown / Habit / Calendar / GitHub …). Each entry is <code>{ id, connector_type, display_name, enabled, config }</code>; the <code>habit</code> instance holds all habit definitions in <code>config.habits[]</code> — see <a href="#habit-definitions--in-settingsmd-not-a-standalone-file">Habit definitions</a> above.</td></tr><tr><td><code>weight_assignee_match</code></td><td>string</td><td>Numeric string (default <code>'2'</code>)</td></tr><tr><td><code>weight_response_bonus</code></td><td>string</td><td>Numeric string (default <code>'2'</code>)</td></tr><tr><td><code>collaborator_assignee_weights</code></td><td>string</td><td>JSON object: collaborator ID to weight</td></tr><tr><td><code>collaborator_response_weights</code></td><td>string</td><td>JSON object: collaborator ID to weight</td></tr></tbody></table>
 <pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">todoist_token</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"abc123..."</span></span>
 <span class="line"><span style="color:#85E89D">todoist_user_id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"12345678"</span></span>
 <span class="line"><span style="color:#85E89D">sound_enabled</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"true"</span></span>
