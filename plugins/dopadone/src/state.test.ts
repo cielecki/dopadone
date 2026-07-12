@@ -5,10 +5,13 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   claimPath,
   clearClaim,
+  overrideQuietPath,
   readClaim,
+  recordOverrideQuiet,
   routineMarkerExists,
   sanitizeKey,
   sessionInjectPath,
+  withinOverrideQuiet,
   wrapupPath,
   writeClaim,
   writeRoutineMarker
@@ -27,6 +30,30 @@ describe('path builders', () => {
     expect(claimPath('/d', 'pomiar:brzucha')).toBe('/d/interrupt-claim-pomiar_brzucha.txt')
     expect(wrapupPath('/d', 'a/b')).toBe('/d/last-wrapup-a_b.txt')
     expect(sessionInjectPath('/d', 'sid-123')).toBe('/d/last-inject-sid-123.txt')
+    expect(overrideQuietPath('/d', 'a/b')).toBe('/d/override-quiet-a_b.txt')
+  })
+})
+
+describe('override quiet window', () => {
+  let dir: string
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'hr-oq-'))
+  })
+  afterEach(() => rmSync(dir, { recursive: true, force: true }))
+
+  it('no window written → not within', () => {
+    expect(withinOverrideQuiet(dir, 's1', 1000)).toBe(false)
+  })
+  it('records an expiry (now + minutes) and honors it until it lapses', () => {
+    recordOverrideQuiet(dir, 's1', 1000, 60) // quiet until 1000 + 3600 = 4600
+    expect(withinOverrideQuiet(dir, 's1', 1000)).toBe(true)
+    expect(withinOverrideQuiet(dir, 's1', 4599)).toBe(true)
+    expect(withinOverrideQuiet(dir, 's1', 4600)).toBe(false) // boundary: now < until is false
+    expect(withinOverrideQuiet(dir, 's1', 9999)).toBe(false)
+  })
+  it('is per-session', () => {
+    recordOverrideQuiet(dir, 's1', 1000, 60)
+    expect(withinOverrideQuiet(dir, 's2', 1000)).toBe(false)
   })
 })
 

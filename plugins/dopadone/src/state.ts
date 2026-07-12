@@ -115,3 +115,27 @@ export function writeRoutineMarker(dataDir: string, sid: string): void {
 export function routineMarkerExists(dataDir: string, sid: string): boolean {
   return existsSync(routineMarkerPath(dataDir, sid))
 }
+
+// --- Override quiet window ---
+// After the override phrase is used during a night phase, this session stays FULLY silent
+// (no interrupt, no time-marker) until the stored expiry — so a deliberate night work
+// session isn't re-interrupted every single turn (the context-pollution that made
+// overriding-then-working ineffective). Unlike the "last event" files above, this stores
+// the EXPIRY unix-sec (now + minutes*60), not the event time.
+export function overrideQuietPath(dataDir: string, sid: string): string {
+  return join(dataDir, `override-quiet-${sanitizeKey(sid)}.txt`)
+}
+/** True if this session is inside an active override-granted quiet window. */
+export function withinOverrideQuiet(dataDir: string, sid: string, nowSec: number): boolean {
+  const until = readTs(overrideQuietPath(dataDir, sid))
+  return until !== null && nowSec < until
+}
+/** Start/refresh the quiet window: silent until now + `minutes`. */
+export function recordOverrideQuiet(
+  dataDir: string,
+  sid: string,
+  nowSec: number,
+  minutes: number
+): void {
+  writeTs(overrideQuietPath(dataDir, sid), nowSec + minutes * 60)
+}

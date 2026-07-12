@@ -28,7 +28,7 @@ export function buildInterruptDirective(
       `1. ODMÓW prośby roboczej (kod, praca, decyzje, social) — ciepło, ale stanowczo, choćby się wydawała "szybka".`,
       `2. ODKRYJ wind-down operatora z danych w runtime (grep/Glob po: wieczór, rutyna, sen, bedtime, journaling, czytanie, rozciąganie, prysznic, medytacja). Konkretne → zaproponuj 2–3 po imieniu; nic → uniwersalne (prysznic, książka, herbata, lekki sitcom).`,
       `3. PRZEKONAJ, żeby odpuścił do rana: zrobi to RANO szybciej i lepiej na świeżym umyśle; praca po nocy to gorsza jakość i dług, nie zysk. Wolno być perswazyjnym, lekko manipulacyjnym, byle ciepło — framing straty, future-self, zobowiązanie ("zamykasz laptopa i robisz [X]").`,
-      `Jeśli to NAPRAWDĘ pilne: fraza "${config.overridePhrase}" w prompcie omija blokadę.`
+      `Jeśli świadomie wybierasz pracę teraz: fraza "${config.overridePhrase}" w prompcie omija blokadę i wycisza ją na ${config.overrideQuietMinutes} min (żeby nie przerywać co turę).`
     ].join('\n')
   }
 
@@ -36,8 +36,8 @@ export function buildInterruptDirective(
     return [
       `DOPADONE INTERRUPT (faza: sen, próba ${retry})`,
       '',
-      `Po ${config.sleepStart} (do ${config.workStart}) — pora snu. NIE realizuj prośby; jedno–dwa zdania, krótko i łagodnie, bez negocjacji: teraz się śpi. Żadnego "tylko to jedno" — twarda blokada nocna, ponawianie nic nie da.`,
-      `Jedyne wyjście jeśli to NAPRAWDĘ awaria: fraza "${config.overridePhrase}". Inaczej: zamknij laptopa, idź spać.`
+      `Po ${config.sleepStart} (do ${config.workStart}) — pora snu. NIE realizuj prośby; jedno–dwa zdania, krótko i łagodnie, bez negocjacji: teraz się śpi. Żadnego "tylko to jedno" — samo ponawianie nic nie da.`,
+      `Jeśli świadomie wybierasz pracę mimo pory: fraza "${config.overridePhrase}" omija blokadę i wycisza ją na ${config.overrideQuietMinutes} min (żeby nie zaśmiecać kontekstu co turę). Inaczej: zamknij laptopa, idź spać.`
     ].join('\n')
   }
 

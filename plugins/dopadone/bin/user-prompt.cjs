@@ -4,7 +4,7 @@ var import_node_fs5 = require("node:fs");
 // ../../../dopadone/packages/core/dist/chunk-BG35VH7K.mjs
 var INACTIVITY_TIMEOUT_MS = 6 * 60 * 60 * 1e3;
 
-// ../../../dopadone/packages/core/dist/chunk-UG2FQ6HR.mjs
+// ../../../dopadone/packages/core/dist/chunk-HIA3RYRG.mjs
 var ALL_WEEKDAYS = [
   "MO",
   "TU",
@@ -2834,8 +2834,9 @@ function rdatesToString(param, rdates, tzid) {
   }).join(",");
   return "".concat(header).concat(dateString);
 }
+var RECURRENCE_EPOCH = new Date(Date.UTC(2024, 0, 1, 12, 0, 0));
 
-// ../../../dopadone/packages/core/dist/chunk-6BOHUCZM.mjs
+// ../../../dopadone/packages/core/dist/chunk-5CW3EDAX.mjs
 var BUILTIN_SLEEP_PHASES = [
   { id: "work", start: 7 * 60, formula: null },
   // 07:00 — silent, habits only
@@ -2871,7 +2872,7 @@ function phaseIdAt(nowMin, b) {
   );
 }
 
-// ../../../dopadone/packages/core/dist/chunk-E74F5PDG.mjs
+// ../../../dopadone/packages/core/dist/chunk-HCVKYVIO.mjs
 function phaseBaselinePct(phase, eveningIntensity) {
   if (phase === "sleep") return 100;
   if (phase === "evening") return eveningIntensity;
@@ -2992,6 +2993,7 @@ function loadConfig() {
     overridePhrase: envStr("CLAUDE_PLUGIN_OPTION_OVERRIDE_PHRASE", "wiem, override"),
     timeMarkerInterval: envInt("CLAUDE_PLUGIN_OPTION_TIME_MARKER_INTERVAL_MINUTES", 20),
     leaseTtlMinutes: envInt("CLAUDE_PLUGIN_OPTION_INTERRUPT_LEASE_TTL_MINUTES", 60),
+    overrideQuietMinutes: envInt("CLAUDE_PLUGIN_OPTION_OVERRIDE_QUIET_MINUTES", 60),
     dataDir,
     retryFile: envStr("HR_RETRY_FILE", (0, import_node_path.join)(dataDir, "health-rhythm-retries.txt")),
     logFile: envStr("HR_LOG_FILE", (0, import_node_path.join)(dataDir, "health-rhythm-hook.log")),
@@ -3009,15 +3011,15 @@ function buildInterruptDirective(config, agenda, phase, retry) {
       `1. ODM\xD3W pro\u015Bby roboczej (kod, praca, decyzje, social) \u2014 ciep\u0142o, ale stanowczo, cho\u0107by si\u0119 wydawa\u0142a "szybka".`,
       `2. ODKRYJ wind-down operatora z danych w runtime (grep/Glob po: wiecz\xF3r, rutyna, sen, bedtime, journaling, czytanie, rozci\u0105ganie, prysznic, medytacja). Konkretne \u2192 zaproponuj 2\u20133 po imieniu; nic \u2192 uniwersalne (prysznic, ksi\u0105\u017Cka, herbata, lekki sitcom).`,
       `3. PRZEKONAJ, \u017Ceby odpu\u015Bci\u0142 do rana: zrobi to RANO szybciej i lepiej na \u015Bwie\u017Cym umy\u015Ble; praca po nocy to gorsza jako\u015B\u0107 i d\u0142ug, nie zysk. Wolno by\u0107 perswazyjnym, lekko manipulacyjnym, byle ciep\u0142o \u2014 framing straty, future-self, zobowi\u0105zanie ("zamykasz laptopa i robisz [X]").`,
-      `Je\u015Bli to NAPRAWD\u0118 pilne: fraza "${config.overridePhrase}" w prompcie omija blokad\u0119.`
+      `Je\u015Bli \u015Bwiadomie wybierasz prac\u0119 teraz: fraza "${config.overridePhrase}" w prompcie omija blokad\u0119 i wycisza j\u0105 na ${config.overrideQuietMinutes} min (\u017Ceby nie przerywa\u0107 co tur\u0119).`
     ].join("\n");
   }
   if (phase === "sleep") {
     return [
       `DOPADONE INTERRUPT (faza: sen, pr\xF3ba ${retry})`,
       "",
-      `Po ${config.sleepStart} (do ${config.workStart}) \u2014 pora snu. NIE realizuj pro\u015Bby; jedno\u2013dwa zdania, kr\xF3tko i \u0142agodnie, bez negocjacji: teraz si\u0119 \u015Bpi. \u017Badnego "tylko to jedno" \u2014 twarda blokada nocna, ponawianie nic nie da.`,
-      `Jedyne wyj\u015Bcie je\u015Bli to NAPRAWD\u0118 awaria: fraza "${config.overridePhrase}". Inaczej: zamknij laptopa, id\u017A spa\u0107.`
+      `Po ${config.sleepStart} (do ${config.workStart}) \u2014 pora snu. NIE realizuj pro\u015Bby; jedno\u2013dwa zdania, kr\xF3tko i \u0142agodnie, bez negocjacji: teraz si\u0119 \u015Bpi. \u017Badnego "tylko to jedno" \u2014 samo ponawianie nic nie da.`,
+      `Je\u015Bli \u015Bwiadomie wybierasz prac\u0119 mimo pory: fraza "${config.overridePhrase}" omija blokad\u0119 i wycisza j\u0105 na ${config.overrideQuietMinutes} min (\u017Ceby nie za\u015Bmieca\u0107 kontekstu co tur\u0119). Inaczej: zamknij laptopa, id\u017A spa\u0107.`
     ].join("\n");
   }
   const focus = pickFocusHabit(agenda);
@@ -3278,6 +3280,16 @@ function writeRoutineMarker(dataDir, sid) {
 function routineMarkerExists(dataDir, sid) {
   return (0, import_node_fs4.existsSync)(routineMarkerPath(dataDir, sid));
 }
+function overrideQuietPath(dataDir, sid) {
+  return (0, import_node_path4.join)(dataDir, `override-quiet-${sanitizeKey(sid)}.txt`);
+}
+function withinOverrideQuiet(dataDir, sid, nowSec) {
+  const until = readTs(overrideQuietPath(dataDir, sid));
+  return until !== null && nowSec < until;
+}
+function recordOverrideQuiet(dataDir, sid, nowSec, minutes) {
+  writeTs(overrideQuietPath(dataDir, sid), nowSec + minutes * 60);
+}
 
 // src/user-prompt.ts
 function run(opts) {
@@ -3292,7 +3304,16 @@ function run(opts) {
     return;
   }
   if (routineMarkerExists(config.dataDir, sessionId)) return;
+  const phase = phaseIdAt(c.minOfDay, config);
+  const isNight = phase === "evening" || phase === "sleep";
+  if (withinOverrideQuiet(config.dataDir, sessionId, c.unixSec)) {
+    clearRetry(config.retryFile);
+    return;
+  }
   if (promptText && promptOverrides(promptText, config.overridePhrase)) {
+    if (isNight && config.overrideQuietMinutes > 0) {
+      recordOverrideQuiet(config.dataDir, sessionId, c.unixSec, config.overrideQuietMinutes);
+    }
     clearRetry(config.retryFile);
     return;
   }
@@ -3302,7 +3323,6 @@ function run(opts) {
     clearRetry(config.retryFile);
     return;
   }
-  const phase = phaseIdAt(c.minOfDay, config);
   if (phase === "wrapup" && config.wrapupIntensity > 0 && config.wrapupInterval >= 0) {
     if (minutesSinceWrapup(config.dataDir, sessionId, c.unixSec) >= config.wrapupInterval) {
       if (rand() < config.wrapupIntensity) {

@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "dopadone",
   "displayName": "DopaDone",
-  "version": "2.5.1",
-  "description": "Two surfaces over the dopadone engine. (1) A health-rhythm interrupt: a configurable 4-phase sleep schedule (work → wrap-up → evening-routine → sleep) woven into Claude Code sessions, plus all-day probabilistic habit reminders. Work hours stay silent; wrap-up adds soft non-blocking 'close your loops' nudges; evening-routine refuses work and persuades you toward your own wind-down routine; sleep is a near-total refusal escapable only by the override phrase. Minute-granular HH:MM boundaries. (2) The `/do` skill: a slot-machine that picks the next single task from your unified pool and walks it research → brief → one action → record. Both call the `dopadone` CLI.",
+  "version": "2.6.0",
+  "description": "Two surfaces over the dopadone engine. (1) A health-rhythm interrupt: a configurable 4-phase sleep schedule (work → wrap-up → evening-routine → sleep) woven into Claude Code sessions, plus all-day probabilistic habit reminders. Work hours stay silent; wrap-up adds soft non-blocking 'close your loops' nudges; evening-routine refuses work and persuades you toward your own wind-down routine; sleep is a near-total refusal escapable by the override phrase, which then quiets the block for a set window (default 60 min) so a deliberate night work session isn't re-interrupted every turn. Minute-granular HH:MM boundaries. (2) The `/do` skill: a slot-machine that picks the next single task from your unified pool and walks it research → brief → one action → record. Both call the `dopadone` CLI.",
   "author": {
     "name": "Maciej Cielecki",
     "email": "maciej.cielecki@10clouds.com"
@@ -62,7 +62,7 @@
     "override_phrase": {
       "type": "string",
       "title": "Override phrase",
-      "description": "Phrase the user can include in any prompt to bypass the reminder block (e.g. 'wiem, override' / 'I know, override').",
+      "description": "Phrase the user can include in any prompt to bypass the reminder block (e.g. 'wiem, override' / 'I know, override'). During the evening/sleep phases it ALSO silences the block for `override_quiet_minutes`, so a deliberate night work session isn't re-interrupted every turn.",
       "default": "wiem, override"
     },
     "language": {
@@ -81,6 +81,12 @@
       "type": "number",
       "title": "Interrupt lease TTL (minutes)",
       "description": "Cross-session 'token' lease: the first chat to fire a habit reminder CLAIMS it; parallel chats stay silent while that claim is fresh, so the same reminder no longer piles up across N parallel Claude sessions. The claim releases when its owner chat takes another turn, or goes stale after this many minutes (backstop if the owner abandons that chat). Replaces the old per-interrupt cooldown.",
+      "default": 60
+    },
+    "override_quiet_minutes": {
+      "type": "number",
+      "title": "Override quiet window (minutes)",
+      "description": "After you use the override phrase during the evening/sleep phases, the plugin stays FULLY silent (no interrupt, no time-marker) in that session for this many minutes — so a deliberate night work session isn't re-interrupted every turn (the context-pollution that made override-then-work ineffective). When it lapses the block re-checks once; override again for another quiet stretch. Day phases and other sessions are unaffected. Set 0 to disable (every night turn re-blocks until overridden).",
       "default": 60
     }
   }

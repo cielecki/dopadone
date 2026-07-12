@@ -27,8 +27,10 @@ import {
   minutesSinceWrapup,
   readClaim,
   recordInject,
+  recordOverrideQuiet,
   recordWrapup,
   routineMarkerExists,
+  withinOverrideQuiet,
   writeClaim,
   writeRoutineMarker
 } from './state'
@@ -71,8 +73,27 @@ export function run(opts: RunOptions): void {
   }
   if (routineMarkerExists(config.dataDir, sessionId)) return
 
-  // --- Override phrase — let through silently and clear retry ---
+  const phase = phaseIdAt(c.minOfDay, config)
+  const isNight = phase === 'evening' || phase === 'sleep'
+
+  // --- Override quiet window ---
+  // An override earlier this session bought a stretch of silence (default 60 min) so a
+  // deliberate night work session isn't re-interrupted every single turn — the exact
+  // context-pollution that made "override then work" ineffective. Honor it in ANY phase
+  // (a window opened at 06:50 runs its full hour past the 07:00 work boundary), and skip
+  // the agenda fetch entirely so the quiet turn stays clean even if the CLI is down.
+  if (withinOverrideQuiet(config.dataDir, sessionId, c.unixSec)) {
+    clearRetry(config.retryFile)
+    return
+  }
+
+  // --- Override phrase — let this turn through silently, clear retry ---
+  // At night, also open/refresh the quiet window so the REST of the session stays clean
+  // until it lapses (then the block re-checks once; override again for another stretch).
   if (promptText && promptOverrides(promptText, config.overridePhrase)) {
+    if (isNight && config.overrideQuietMinutes > 0) {
+      recordOverrideQuiet(config.dataDir, sessionId, c.unixSec, config.overrideQuietMinutes)
+    }
     clearRetry(config.retryFile)
     return
   }
@@ -83,8 +104,6 @@ export function run(opts: RunOptions): void {
     clearRetry(config.retryFile)
     return
   }
-
-  const phase = phaseIdAt(c.minOfDay, config)
 
   // --- Wrap-up phase: non-blocking reminder channel (own cadence + intensity) ---
   if (phase === 'wrapup' && config.wrapupIntensity > 0 && config.wrapupInterval >= 0) {

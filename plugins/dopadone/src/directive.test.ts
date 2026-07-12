@@ -11,6 +11,7 @@ const config = {
   sleepStart: '23:30',
   eveningIntensity: 70,
   overridePhrase: 'wiem, override',
+  overrideQuietMinutes: 60,
   protocolFile: '/plugin/references/interrupt-protocol.md'
 } as Config
 

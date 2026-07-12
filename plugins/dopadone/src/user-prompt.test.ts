@@ -21,6 +21,7 @@ function makeConfig(dir: string): Config {
     overridePhrase: 'wiem, override',
     timeMarkerInterval: 20,
     leaseTtlMinutes: 60,
+    overrideQuietMinutes: 60,
     dataDir: dir,
     retryFile: join(dir, 'retries.txt'),
     logFile: join(dir, 'hook.log'),
@@ -114,6 +115,66 @@ describe('run (integration)', () => {
       rand: () => 0
     })
     expect(out()).toBe('')
+  })
+
+  it('override at night quiets the session for the window, then the block returns', () => {
+    const cfg = makeConfig(dir)
+    const T0 = clockFrom(new Date(2026, 5, 15, 23, 45, 0)) // sleep — override here
+    const Tin = clockFrom(new Date(2026, 5, 16, 0, 30, 0)) // +45 min, inside the 60-min window
+    const Tout = clockFrom(new Date(2026, 5, 16, 0, 50, 0)) // +65 min, window lapsed
+    // override → silent this turn AND opens the quiet window
+    run({
+      input: { prompt: 'wiem, override', session_id: 'sn' },
+      clock: T0,
+      config: cfg,
+      fetchAgenda: () => agenda(),
+      rand: () => 0
+    })
+    expect(out()).toBe('')
+    writes.length = 0
+    // inside the window: a plain prompt stays silent even though sleep would force p=100
+    run({
+      input: { prompt: 'keep working', session_id: 'sn' },
+      clock: Tin,
+      config: cfg,
+      fetchAgenda: () => agenda(),
+      rand: () => 99
+    })
+    expect(out()).toBe('')
+    writes.length = 0
+    // after the window: the sleep block fires again (one conscious override per stretch)
+    run({
+      input: { prompt: 'keep working', session_id: 'sn' },
+      clock: Tout,
+      config: cfg,
+      fetchAgenda: () => agenda(),
+      rand: () => 99
+    })
+    expect(ctx()).toContain('event="interrupt"')
+    expect(ctx()).toContain('mode="sleep"')
+  })
+
+  it('override during the day opens no quiet window (next turn still eligible)', () => {
+    const cfg = makeConfig(dir)
+    run({
+      input: { prompt: 'wiem, override', session_id: 'sd' },
+      clock: WORK,
+      config: cfg,
+      fetchAgenda: () => agenda(),
+      rand: () => 0
+    })
+    expect(out()).toBe('')
+    writes.length = 0
+    // no window created → a normal work turn with a dice hit still fires the habit interrupt
+    run({
+      input: { prompt: 'hi', session_id: 'sd' },
+      clock: WORK,
+      config: cfg,
+      fetchAgenda: () => agenda(),
+      rand: () => 0
+    })
+    expect(ctx()).toContain('event="interrupt"')
+    expect(ctx()).toContain('mode="work"')
   })
 
   it('muted agenda → silent', () => {

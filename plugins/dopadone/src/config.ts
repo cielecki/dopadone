@@ -21,6 +21,7 @@ export interface Config {
   overridePhrase: string
   timeMarkerInterval: number
   leaseTtlMinutes: number
+  overrideQuietMinutes: number
   dataDir: string
   retryFile: string
   logFile: string
@@ -67,6 +68,7 @@ export function loadConfig(): Config {
     overridePhrase: envStr('CLAUDE_PLUGIN_OPTION_OVERRIDE_PHRASE', 'wiem, override'),
     timeMarkerInterval: envInt('CLAUDE_PLUGIN_OPTION_TIME_MARKER_INTERVAL_MINUTES', 20),
     leaseTtlMinutes: envInt('CLAUDE_PLUGIN_OPTION_INTERRUPT_LEASE_TTL_MINUTES', 60),
+    overrideQuietMinutes: envInt('CLAUDE_PLUGIN_OPTION_OVERRIDE_QUIET_MINUTES', 60),
     dataDir,
     retryFile: envStr('HR_RETRY_FILE', join(dataDir, 'health-rhythm-retries.txt')),
     logFile: envStr('HR_LOG_FILE', join(dataDir, 'health-rhythm-hook.log')),
