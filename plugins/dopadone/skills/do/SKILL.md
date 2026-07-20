@@ -9,8 +9,8 @@ description: |
   work on", "make some progress". Named triggers: "/do <id-or-url>", "let's work on X".
   A bare task URL with no instruction → read + ask before working.
 author: DopaDone
-version: 2.0.0
-date: 2026-06-25
+version: 2.1.0
+date: 2026-07-20
 allowed-tools:
   - Bash
   - Read
@@ -175,7 +175,7 @@ better options:
 
 | `source_type` | Auto-run |
 |---|---|
-| `todoist` | Pull task body + comments via your configured Todoist tooling (or the REST API). Keep each comment's timestamp. Don't trust `note_count` if your tooling flags it unreliable. |
+| `todoist` | Pull task body + comments via your configured Todoist tooling (or the REST API). Keep each comment's timestamp. Don't trust `note_count` if your tooling flags it unreliable. Your tooling may **auto-register this chat** on the task (a comment with a resume link to the current conversation) — that's desired for the subject task: it makes the chat findable from the task and lights up source-app affordances (e.g. DopaDone's "Open in Claude Code"). Don't also post a backlink by hand; don't treat the registration line in the tool output as an error. |
 | `markdown` | `Read` the file at `ext.filePath`. The task body alone is usually a stub. |
 | `habit` | No extra research needed; print the habit description. |
 | `calendar` | If the event has location/attendees/notes in `ext`, surface them. |
@@ -218,6 +218,11 @@ all API calls in one batch):
 4. **Filter** to matches sharing a person name, an exact noun ≥4 chars in both titles, a
    project label, or a referenced URL host. Drop generic-word hits.
 5. Cap at **5 related tasks**. If more matched, keys were too generic — narrow.
+
+When you go on to DEEP-READ a related task (full body + comments, beyond the search-hit
+title), pass your Todoist tooling's register-opt-out flag if it has one (e.g.
+`--no-register`) — only the SUBJECT task should collect this chat's backlink comment,
+not every sibling you peeked at.
 
 What to do with findings:
 - **0 found** — say nothing.
