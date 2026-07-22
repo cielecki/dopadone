@@ -7,10 +7,10 @@ description: |
   ONE action → iterate → execute → record outcome via the `dopadone` CLI. Auto-continues
   only in pick mode. Pick triggers: "/do", "what now", "pick me a task", "what should I
   work on", "make some progress". Named triggers: "/do <id-or-url>", "let's work on X".
-  A bare task URL with no instruction → read + ask before working.
+  A bare task URL with no instruction → read it and get to work (no ask gate).
 author: DopaDone
-version: 2.1.0
-date: 2026-07-20
+version: 2.2.0
+date: 2026-07-22
 allowed-tools:
   - Bash
   - Read
@@ -63,7 +63,7 @@ skill at step 2).
 |---|---|---|
 | **1a — Pick (no task)** | `/do` alone, "what now", "pick me one", "make some progress", "what should I work on" | Set `entry=pick`. `source_type` and `id` are UNKNOWN now — set by step 3's pick result. Skip step 2. |
 | **1b — Named explicit** | `/do <id-or-url-or-fragment>`, "let's work on X", "start on X" | Set `entry=named-explicit`. Extract `source_type` + `id` from the identifier (see resolution table). If the identifier is a title fragment, `id` remains unknown until step 4. |
-| **1c — Bare URL paste** | Message contains only a Todoist / GitHub URL and nothing else signalling action intent (no "let's work on", no explicit verb) | Set `entry=bare-url`. Extract `source_type` + `id` from URL pattern. Set a flag for step 5 to ask before continuing. |
+| **1c — Bare URL paste** | Message contains only a Todoist / GitHub URL and nothing else signalling action intent (no "let's work on", no explicit verb) | Set `entry=bare-url`. Extract `source_type` + `id` from URL pattern. Pasting the link IS the go-ahead — treat exactly like 1b: research → work → record, no ask gate. |
 
 **Identifier resolution table (for entry 1b):**
 
@@ -166,7 +166,7 @@ When entry 1b passed a title fragment ("let's work on the X task"), resolve to a
 
 Once resolved, set `source_type` and `id`. Load the substrate tooling if configured.
 
-### Step 5 — Research the task (and brief, then ask if entry 1c)
+### Step 5 — Research the task (and brief)
 
 Research is **free** — it has no side effects on the world or the vault. Do it without asking.
 
@@ -280,22 +280,15 @@ text `group: <names>` with `⚠️ open manually` (no group deeplink). For unsav
 the bare number, still wrap as a link. Skip this rule entirely if no contact tooling is
 configured.
 
-#### Entry 1c (bare-URL) ASK GATE — ask before continuing past briefing
+#### All entries — proceed straight to Step 6 (no ask gate)
 
-If `entry === "bare-url"`: after the briefing, append one line:
-
-> Want to work on it? **(yes / skip / just looking)**
-
-End your turn. Wait for the user's plain-text reply.
-
-| Reply | Next |
-|---|---|
-| "yes" / "ok" / "let's go" | Continue to Step 6 (propose action) |
-| "skip" / "leave" / "drop" | Exit the skill, no outcome recorded |
-| "just looking" / "info only" | Exit the skill, no outcome recorded |
-| Anything else | Treat as discussion, answer their question, then re-ask |
-
-For entry 1a (pick) and entry 1b (named-explicit), DO NOT ask. Proceed directly to Step 6.
+Go directly to Step 6 for EVERY entry variant, bare-URL (1c) included. **Pasting a bare task
+URL is the go-ahead, not a question** — never append a "want to work on it?" gate. This
+matches DopaDone's own handoff (#340): the "Talk to Claude Code" button prefills a URL-bearing
+task's composer with *just the link* so the chat gets straight to work, and the non-URL
+fallback prompt (`buildTalkPrompt` in dopadone `claude-links.ts`) says the same — extract the
+full context, then make progress, no ask. If the user only wanted to look, they'll say so;
+default to momentum.
 
 ### Step 6 — Propose ONE concrete action
 
@@ -450,7 +443,7 @@ outcome, AND only when `entry === "pick"`.
 - **Don't skip the related-task scan.** Even a self-contained-looking task often has a fresher
   Inbox duplicate or batchable sibling. Always run the scan (Step 5).
 - **Don't use AskUserQuestion anywhere in this flow.** Plain prose + typed reply. Applies to
-  Steps 5 (bare-URL ask), 7 (action approval), and 9 (outcome recording).
+  Steps 7 (action approval) and 9 (outcome recording).
 - **Don't present a menu of 3–4 actions.** Pick ONE and recommend it. The 7 ADHD patterns are
   an *internal* scoring rubric, not a UI element.
 - Don't suggest abstract first actions ("think about X"). The recommended action must name a
@@ -458,8 +451,8 @@ outcome, AND only when `entry === "pick"`.
 - **Don't pre-load substrate tooling speculatively.** Load it only when `source_type` is
   actually known (Step 3 for pick, Step 4 for title-fragment).
 - **Don't auto-continue (slot-machine loop) in named entry.** Loop only after pick entry (1a).
-- **Don't skip the bare-URL ask gate.** For entry 1c, ALWAYS pause at the end of Step 5 and ask
-  before continuing — the user may have pasted the URL just to discuss or capture.
+- **Don't add an ask gate to bare-URL entry.** Pasting a bare task URL (1c) is the go-ahead —
+  proceed to Step 6 like any named task; don't pause to ask "want to work on it?".
 
 ## First-run notes
 
