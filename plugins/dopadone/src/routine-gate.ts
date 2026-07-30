@@ -29,6 +29,27 @@ export function detectRoutine(promptText: string, transcriptHead: string | null)
   return false
 }
 
+/**
+ * Is this turn a harness-injected background event rather than something the human typed?
+ *
+ * A completed background task (Bash `run_in_background`, a Monitor event, a finished Agent)
+ * re-invokes the session with a synthetic user turn, and that turn goes through
+ * UserPromptSubmit exactly like a real prompt. Nobody is at the keyboard for it.
+ *
+ * Verified 2026-07-29 (session 4546e77f, a 2h14m transcription wait): interrupts fired with
+ * `retry="1"` at 22:30:48 and `retry="2"` at 22:31:04, each on a turn whose user message was a
+ * `<task-notification>`. The escalation tiers then read that as the human pushing back — the
+ * directive reached retry ≥ 3 and started offering the override phrase before he had seen a
+ * single prompt. Both halves are wrong: the nudge is delivered to an empty room, and the
+ * counter that exists to measure human insistence is advanced by machine events.
+ */
+export function isBackgroundEventTurn(promptText: string): boolean {
+  return (
+    promptText.includes('<task-notification') ||
+    promptText.includes('[SYSTEM NOTIFICATION - NOT USER INPUT]')
+  )
+}
+
 /** Read up to TRANSCRIPT_HEAD_BYTES from a transcript file; "" on any failure. */
 export function readTranscriptHead(transcriptPath: string): string | null {
   if (!transcriptPath || !existsSync(transcriptPath)) return null

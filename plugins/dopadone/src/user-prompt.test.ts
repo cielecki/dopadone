@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AgendaResponse } from './agenda'
 import { clockFrom } from './clock'
 import type { Config } from './config'
+import { readRetry } from './retry'
 import { readClaim, routineMarkerExists } from './state'
 import { run } from './user-prompt'
 
@@ -317,6 +318,25 @@ describe('run (integration)', () => {
     })
     expect(out()).toBe('')
     expect(readClaim(dir, 'obiad')).toBeNull()
+  })
+
+  it('background task-notification turn → fully silent, and retry does NOT advance', () => {
+    const cfg = makeConfig(dir)
+    const notif = '<task-notification>\n<task-id>abc</task-id>\n</task-notification>'
+    // rand: () => 0 forces the interrupt channel, so anything emitted here is the bug.
+    for (let i = 0; i < 3; i++) {
+      run({
+        input: { prompt: notif, session_id: 's1' },
+        clock: WORK,
+        config: cfg,
+        fetchAgenda: () => agenda(),
+        rand: () => 0
+      })
+    }
+    expect(out()).toBe('')
+    // The regression this guards: three background events used to walk retry 1→2→3 and trip
+    // the override-escalation tier without the human ever seeing a prompt (session 4546e77f).
+    expect(readRetry(cfg.retryFile, WORK.unixSec).count).toBe(0)
   })
 
   it('no interrupt + fresh session → time-marker', () => {

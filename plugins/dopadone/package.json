@@ -1,6 +1,6 @@
 {
   "name": "dopadone-plugin",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "private": true,
   "description": "Source for the dopadone Claude Code plugin (health-rhythm interrupt + the /do skill). The shipped hooks are the esbuild-bundled CJS in bin/ (committed); end users never run install. The hooks import the domain math (phase/probability/agenda) from @dopadone/core/habits (#283), bundled in via the build alias; build:smoke proves that seam stays calendar-/node-free. The build/test alias path assumes a sibling checkout of the private dopadone repo at ../../../dopadone (dev-only — outsiders run the committed bins).",
   "scripts": {

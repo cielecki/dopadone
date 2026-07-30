@@ -20,7 +20,7 @@ import { buildInterruptDirective, buildWrapupDirective } from './directive'
 import { emitInterrupt, emitTimeMarker, emitWrapup } from './emit'
 import { promptOverrides } from './override'
 import { bumpRetry, clearRetry } from './retry'
-import { detectRoutine, readTranscriptHead } from './routine-gate'
+import { detectRoutine, isBackgroundEventTurn, readTranscriptHead } from './routine-gate'
 import {
   clearClaim,
   minutesSinceInject,
@@ -64,6 +64,14 @@ export function run(opts: RunOptions): void {
   // (verified in the CC binary, v2.1.178: `agent_id:q?.agentId`). A subagent must never
   // get a health-rhythm injection nor claim a habit lease — it's not the human's chat.
   if (input.agent_id) return
+
+  // --- Background-event gate (interactive-human-only) ---
+  // A finished background task / Monitor event re-invokes the session with a synthetic user
+  // turn that reaches this hook like a real prompt. Return BEFORE any state write: injecting
+  // talks to an empty room, and bumping retry lets machine events climb the 3/5/10 escalation
+  // tiers that are supposed to measure a human pushing back. Deliberately not clearRetry()
+  // either — a background event is not the human relenting, so it must leave the counter alone.
+  if (isBackgroundEventTurn(promptText)) return
 
   // --- Routine gate (interactive-only) ---
   const transcriptHead = transcriptPath ? readTranscriptHead(transcriptPath) : null

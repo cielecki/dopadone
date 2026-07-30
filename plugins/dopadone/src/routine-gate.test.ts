@@ -2,7 +2,35 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { detectRoutine, readTranscriptHead, TRANSCRIPT_HEAD_BYTES } from './routine-gate'
+import {
+  detectRoutine,
+  isBackgroundEventTurn,
+  readTranscriptHead,
+  TRANSCRIPT_HEAD_BYTES
+} from './routine-gate'
+
+describe('isBackgroundEventTurn', () => {
+  it('matches a background task-completion turn', () => {
+    // Verbatim shape from session 4546e77f, the turn that carried retry="1".
+    expect(
+      isBackgroundEventTurn(
+        '<task-notification>\n<task-id>byho9az21</task-id>\n<status>completed</status>\n</task-notification>'
+      )
+    ).toBe(true)
+  })
+  it('matches the system-notification preamble', () => {
+    expect(
+      isBackgroundEventTurn('[SYSTEM NOTIFICATION - NOT USER INPUT]\nThis is an automated event.')
+    ).toBe(true)
+  })
+  it('is false for an ordinary interactive prompt', () => {
+    expect(isBackgroundEventTurn('please fix the bug')).toBe(false)
+    expect(isBackgroundEventTurn('')).toBe(false)
+  })
+  it('does not fire on a prompt that merely mentions the words', () => {
+    expect(isBackgroundEventTurn('what does a task notification look like?')).toBe(false)
+  })
+})
 
 describe('detectRoutine', () => {
   it('matches the scheduler markers in the prompt', () => {

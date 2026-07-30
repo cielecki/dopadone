@@ -3188,6 +3188,9 @@ function detectRoutine(promptText, transcriptHead) {
   }
   return false;
 }
+function isBackgroundEventTurn(promptText) {
+  return promptText.includes("<task-notification") || promptText.includes("[SYSTEM NOTIFICATION - NOT USER INPUT]");
+}
 function readTranscriptHead(transcriptPath) {
   if (!transcriptPath || !(0, import_node_fs3.existsSync)(transcriptPath)) return null;
   try {
@@ -3298,6 +3301,7 @@ function run(opts) {
   const sessionId = input.session_id ?? "default";
   const transcriptPath = input.transcript_path ?? "";
   if (input.agent_id) return;
+  if (isBackgroundEventTurn(promptText)) return;
   const transcriptHead = transcriptPath ? readTranscriptHead(transcriptPath) : null;
   if (detectRoutine(promptText, transcriptHead)) {
     writeRoutineMarker(config.dataDir, sessionId);
