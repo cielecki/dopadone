@@ -11,6 +11,7 @@ import { run } from './user-prompt'
 
 function makeConfig(dir: string): Config {
   return {
+    remindersEnabled: true,
     dopadonePath: 'dopadone',
     workStart: '07:00',
     wrapupStart: '22:00',
@@ -348,5 +349,47 @@ describe('run (integration)', () => {
       rand: () => 50 // 50 ≥ 24 → no interrupt
     })
     expect(ctx()).toContain('event="time-marker"')
+  })
+
+  describe('remindersEnabled=false (time-awareness only)', () => {
+    it('keeps the time-marker and never spawns the agenda fetch', () => {
+      let fetched = 0
+      run({
+        input: { prompt: 'hi', session_id: 's1' },
+        clock: WORK,
+        config: { ...makeConfig(dir), remindersEnabled: false },
+        fetchAgenda: () => {
+          fetched++
+          return agenda()
+        },
+        rand: () => 0 // would certainly interrupt if the channel were live
+      })
+      expect(ctx()).toContain('event="time-marker"')
+      expect(fetched).toBe(0)
+    })
+
+    it('suppresses the sleep-phase block, which is otherwise forced to 100%', () => {
+      run({
+        input: { prompt: 'hi', session_id: 's1' },
+        clock: SLEEP,
+        config: { ...makeConfig(dir), remindersEnabled: false },
+        fetchAgenda: () => agenda(),
+        rand: () => 0
+      })
+      expect(out()).not.toContain('event="interrupt"')
+      expect(ctx()).toContain('event="time-marker"')
+    })
+
+    it('suppresses the wrap-up nudge', () => {
+      run({
+        input: { prompt: 'hi', session_id: 's1' },
+        clock: clockFrom(new Date(2026, 5, 15, 22, 30, 0)),
+        config: { ...makeConfig(dir), remindersEnabled: false },
+        fetchAgenda: () => agenda(),
+        rand: () => 0 // 0 < 35 → wrap-up would fire
+      })
+      expect(out()).not.toContain('event="wrapup"')
+      expect(ctx()).toContain('event="time-marker"')
+    })
   })
 })

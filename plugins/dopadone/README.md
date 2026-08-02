@@ -86,6 +86,7 @@ All settings live in `.claude-plugin/plugin.json` under `userConfig` and are fil
 
 | Field | Default | What it does |
 |---|---|---|
+| `reminders_enabled` | `true` | Master switch for every **nudge** — habit interrupts, wrap-up, the evening/sleep block, OS notifications. Set `'false'` for **time-awareness only**: the `time-marker` keeps firing, nothing else does, and the `dopadone` CLI is no longer spawned per prompt. Also readable from the plain env var `DOPADONE_REMINDERS_ENABLED` (which wins over the plugin option, so it works from `settings.json` → `env`). Off values: `false`, `0`, `off`, `no`. |
 | `dopadone_path` | `dopadone` | Path to the `dopadone` binary. Plugin invokes `<path> habits agenda --json`. |
 | `work_start` | `07:00` | HH:MM when the sleep phase ends and work begins (sleep schedule silent). |
 | `wrapup_start` | `22:00` | HH:MM when soft non-blocking wrap-up nudges begin. |

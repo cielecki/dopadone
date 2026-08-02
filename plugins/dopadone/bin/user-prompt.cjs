@@ -2968,6 +2968,14 @@ function envStr(key, fallback) {
   const v = process.env[key];
   return v === void 0 || v === "" ? fallback : v;
 }
+function envBool(keys, fallback) {
+  for (const key of keys) {
+    const v = process.env[key];
+    if (v === void 0 || v === "") continue;
+    return !["false", "0", "off", "no"].includes(v.trim().toLowerCase());
+  }
+  return fallback;
+}
 function envInt(key, fallback) {
   const v = process.env[key];
   if (v === void 0 || v === "") return fallback;
@@ -2982,6 +2990,10 @@ function resolveProtocolFile() {
 function loadConfig() {
   const dataDir = envStr("CLAUDE_PLUGIN_DATA", (0, import_node_path.join)((0, import_node_os.homedir)(), ".claude", "state"));
   return {
+    remindersEnabled: envBool(
+      ["DOPADONE_REMINDERS_ENABLED", "CLAUDE_PLUGIN_OPTION_REMINDERS_ENABLED"],
+      true
+    ),
     dopadonePath: envStr("CLAUDE_PLUGIN_OPTION_DOPADONE_PATH", "dopadone"),
     workStart: envStr("CLAUDE_PLUGIN_OPTION_WORK_START", "07:00"),
     wrapupStart: envStr("CLAUDE_PLUGIN_OPTION_WRAPUP_START", "22:00"),
@@ -3308,6 +3320,11 @@ function run(opts) {
     return;
   }
   if (routineMarkerExists(config.dataDir, sessionId)) return;
+  if (!config.remindersEnabled) {
+    clearRetry(config.retryFile);
+    maybeTimeMarker(config, sessionId, c);
+    return;
+  }
   const phase = phaseIdAt(c.minOfDay, config);
   const isNight = phase === "evening" || phase === "sleep";
   if (withinOverrideQuiet(config.dataDir, sessionId, c.unixSec)) {
@@ -3364,6 +3381,9 @@ function run(opts) {
     return;
   }
   clearRetry(config.retryFile);
+  maybeTimeMarker(config, sessionId, c);
+}
+function maybeTimeMarker(config, sessionId, c) {
   if (minutesSinceInject(config.dataDir, sessionId, c.unixSec) >= config.timeMarkerInterval) {
     emitTimeMarker(c, config.logFile);
     recordInject(config.dataDir, sessionId, c.unixSec);

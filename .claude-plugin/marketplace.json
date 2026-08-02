@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "DopaDone for Claude Code — the health-rhythm interrupt + the /do task slot-machine, both over the dopadone CLI.",
-    "version": "2.7.0"
+    "version": "2.8.0"
   },
   "plugins": [
     {
       "name": "dopadone",
       "source": "./plugins/dopadone",
       "description": "Two surfaces over the dopadone engine. (1) A health-rhythm interrupt: a configurable 4-phase sleep schedule (work → wrap-up → evening-routine → sleep) plus all-day probabilistic habit reminders, woven into Claude Code sessions. Work hours silent; wrap-up adds soft non-blocking nudges; evening-routine refuses work and persuades toward your own wind-down routine; sleep is a near-total refusal escapable by the override phrase, which then quiets the block for a set window. (2) The /do skill: picks the next single task from your unified pool and walks it research → brief → one action → record. Minute-granular HH:MM boundaries, configurable via userConfig.",
-      "version": "2.7.0",
+      "version": "2.8.0",
       "author": {
         "name": "Maciej Cielecki"
       },

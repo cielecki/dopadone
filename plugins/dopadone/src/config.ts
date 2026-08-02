@@ -10,6 +10,7 @@ import { homedir } from 'node:os'
 import { join } from 'node:path'
 
 export interface Config {
+  remindersEnabled: boolean
   dopadonePath: string
   workStart: string
   wrapupStart: string
@@ -36,6 +37,22 @@ function envStr(key: string, fallback: string): string {
   return v === undefined || v === '' ? fallback : v
 }
 
+/**
+ * Off-switch parse: "false" / "0" / "off" / "no" (case-insensitive) mean off; anything
+ * else set means on. Checked across two keys so an explicit opt-out survives regardless
+ * of whether Claude Code injects the userConfig default into the plugin-option var:
+ * the plain `DOPADONE_REMINDERS_ENABLED` (settable from settings.json `env`) wins, then
+ * the plugin option, then the default.
+ */
+function envBool(keys: string[], fallback: boolean): boolean {
+  for (const key of keys) {
+    const v = process.env[key]
+    if (v === undefined || v === '') continue
+    return !['false', '0', 'off', 'no'].includes(v.trim().toLowerCase())
+  }
+  return fallback
+}
+
 function envInt(key: string, fallback: number): number {
   const v = process.env[key]
   if (v === undefined || v === '') return fallback
@@ -57,6 +74,10 @@ function resolveProtocolFile(): string {
 export function loadConfig(): Config {
   const dataDir = envStr('CLAUDE_PLUGIN_DATA', join(homedir(), '.claude', 'state'))
   return {
+    remindersEnabled: envBool(
+      ['DOPADONE_REMINDERS_ENABLED', 'CLAUDE_PLUGIN_OPTION_REMINDERS_ENABLED'],
+      true
+    ),
     dopadonePath: envStr('CLAUDE_PLUGIN_OPTION_DOPADONE_PATH', 'dopadone'),
     workStart: envStr('CLAUDE_PLUGIN_OPTION_WORK_START', '07:00'),
     wrapupStart: envStr('CLAUDE_PLUGIN_OPTION_WRAPUP_START', '22:00'),

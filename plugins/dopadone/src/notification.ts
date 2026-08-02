@@ -70,6 +70,10 @@ export function main(): void {
   const config = loadConfig()
   const c = nowClock()
 
+  // Reminders off — this hook is pure nudging (meal windows + phase boundaries), so it has
+  // nothing to contribute. The time-marker lives in the UserPromptSubmit hook, not here.
+  if (!config.remindersEnabled) return
+
   // Bail silently if globally muted.
   const agenda = getAgenda(config.dopadonePath)
   if (agenda && agenda.muted != null) return

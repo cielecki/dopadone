@@ -81,6 +81,17 @@ export function run(opts: RunOptions): void {
   }
   if (routineMarkerExists(config.dataDir, sessionId)) return
 
+  // --- Reminders off: time-awareness only ---
+  // remindersEnabled=false silences BOTH nudge channels (habit interrupts, the evening/sleep
+  // block, wrap-up) while keeping the time-marker, so Claude still knows the wall-clock date/time.
+  // Deliberately ahead of the agenda fetch: with no channel left to feed, spawning the CLI on
+  // every prompt is pure latency, and a dead CLI must not take the time-marker down with it.
+  if (!config.remindersEnabled) {
+    clearRetry(config.retryFile)
+    maybeTimeMarker(config, sessionId, c)
+    return
+  }
+
   const phase = phaseIdAt(c.minOfDay, config)
   const isNight = phase === 'evening' || phase === 'sleep'
 
@@ -164,6 +175,11 @@ export function run(opts: RunOptions): void {
 
   // No interrupt this turn — clear retry, then maybe emit a time-marker.
   clearRetry(config.retryFile)
+  maybeTimeMarker(config, sessionId, c)
+}
+
+/** Emit the time-marker if this session hasn't had any injection for `timeMarkerInterval` min. */
+function maybeTimeMarker(config: Config, sessionId: string, c: Clock): void {
   if (minutesSinceInject(config.dataDir, sessionId, c.unixSec) >= config.timeMarkerInterval) {
     emitTimeMarker(c, config.logFile)
     recordInject(config.dataDir, sessionId, c.unixSec)

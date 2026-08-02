@@ -2902,6 +2902,14 @@ function envStr(key, fallback) {
   const v = process.env[key];
   return v === void 0 || v === "" ? fallback : v;
 }
+function envBool(keys, fallback) {
+  for (const key of keys) {
+    const v = process.env[key];
+    if (v === void 0 || v === "") continue;
+    return !["false", "0", "off", "no"].includes(v.trim().toLowerCase());
+  }
+  return fallback;
+}
 function envInt(key, fallback) {
   const v = process.env[key];
   if (v === void 0 || v === "") return fallback;
@@ -2916,6 +2924,10 @@ function resolveProtocolFile() {
 function loadConfig() {
   const dataDir = envStr("CLAUDE_PLUGIN_DATA", (0, import_node_path.join)((0, import_node_os.homedir)(), ".claude", "state"));
   return {
+    remindersEnabled: envBool(
+      ["DOPADONE_REMINDERS_ENABLED", "CLAUDE_PLUGIN_OPTION_REMINDERS_ENABLED"],
+      true
+    ),
     dopadonePath: envStr("CLAUDE_PLUGIN_OPTION_DOPADONE_PATH", "dopadone"),
     workStart: envStr("CLAUDE_PLUGIN_OPTION_WORK_START", "07:00"),
     wrapupStart: envStr("CLAUDE_PLUGIN_OPTION_WRAPUP_START", "22:00"),
@@ -2974,6 +2986,7 @@ function notifDedupKey(c, title) {
 function main() {
   const config = loadConfig();
   const c = nowClock();
+  if (!config.remindersEnabled) return;
   const agenda = getAgenda(config.dopadonePath);
   if (agenda && agenda.muted != null) return;
   const notif = computeNotification(c, config);
