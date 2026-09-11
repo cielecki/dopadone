@@ -1,17 +1,16 @@
 # /do — personal config
 
-This file holds YOUR personalization for the `/do` skill: which tooling to use per task
-source, where to research, and your conventions. The generic skill (`SKILL.md`) injects this
-file at runtime, so none of your private setup lives in the shared skill text.
+This file holds your personalization for the shared `do` workflow. The skill reads
+it through `scripts/read-config.cjs` before any task work; it is not an automatic import.
 
-**Setup:** copy this file to `${CLAUDE_PLUGIN_DATA}/do/config.md` and replace the
-placeholders. The exact folder name varies by how the plugin was installed — a directory /
-`@skills-dir` install resolves it to `…/plugins/data/dopadone-skills-dir/`, a marketplace
-install to `…/plugins/data/dopadone/`. **Don't guess — run `echo ${CLAUDE_PLUGIN_DATA}` and
-drop `config.md` under that exact `…/do/` dir.** (If you copy it to the wrong one, the
-skill's primary `${CLAUDE_PLUGIN_DATA}/do/config.md` lookup misses it and keeps injecting
-this unfilled template every call.) Anything you leave as a placeholder is simply skipped —
-the skill falls back to CLI-only defaults for that section.
+For a new shared configuration, copy this file to
+`${XDG_CONFIG_HOME:-$HOME/.config}/dopadone/do/config.md`, or set `DOPADONE_DO_CONFIG`
+to an existing file. Existing `${CLAUDE_PLUGIN_DATA}/do/config.md` and legacy
+`~/.claude/plugins/data/dopadone/do/config.md` and
+`~/.claude/plugins/data/dopadone-skills-dir/do/config.md` locations remain readable.
+Keep the
+configuration outside the installed plugin so updates do not replace it.
+Unfilled sections use CLI-only defaults.
 
 Everything below is data the model reads as guidance. Keep it concise.
 

@@ -6,23 +6,24 @@ description: |
   task you point to (URL, ID, or title fragment). Workflow: research → brief → propose
   ONE action → iterate → execute → record outcome via the `dopadone` CLI. Auto-continues
   only in pick mode. Pick triggers: "/do", "what now", "pick me a task", "what should I
-  work on", "make some progress". Named triggers: "/do <id-or-url>", "let's work on X".
+  work on", "make some progress". Named triggers: "/do id-or-url", "let's work on X".
   A bare task URL with no instruction → read it and get to work (no ask gate).
-author: DopaDone
-version: 2.2.0
-date: 2026-07-22
 allowed-tools:
   - Bash
   - Read
   - Edit
   - Write
   - Skill
+metadata:
+  author: DopaDone
+  version: "2.3.0"
+  updated: "2026-09-11"
 ---
 
 # /do — work on one task (pick or named)
 
-This skill is a thin Claude Code wrapper around the `dopadone` CLI. The CLI handles vault
-I/O, weight computation, and mutations. Claude handles judgment: which task fits the
+This skill is a shared agent workflow around the `dopadone` CLI. The CLI handles vault
+I/O, weight computation, and mutations. The agent handles judgment: which task fits the
 moment, what the concrete first action is, how to collaborate, when to ask before doing.
 
 Two entry variants share one workflow:
@@ -34,17 +35,22 @@ identical regardless of entry.
 
 ## Your configuration
 
-This skill is generic; your personal setup (which substrate tooling to use per source,
-where to research, your conventions) lives in a config file that is injected below at
-runtime. If it shows the template placeholder, copy `config.template.md` (shipped beside
-this skill) to `${CLAUDE_PLUGIN_DATA}/do/config.md` and fill it in — the skill
-still works without it, just with no source-specific tooling or research roots.
+This skill shares one workflow between Claude Code and Codex. Before the workflow,
+read the applicable platform reference: [Claude Code](references/platforms/claude.md)
+or [Codex](references/platforms/codex.md). References are read by the agent; Markdown
+links are not automatic imports.
 
-!`cat "${CLAUDE_PLUGIN_DATA}/do/config.md" 2>/dev/null || cat "$HOME/.claude/plugins/data/dopadone/do/config.md" 2>/dev/null || echo "(no personal config yet — see config.template.md beside this skill. Proceeding with CLI-only defaults: no substrate skills, no extra research tooling, no custom research roots.)"`
+Run `node scripts/read-config.cjs` from this skill directory and read its output as
+personal configuration. The helper reads existing user-owned configuration without
+copying or changing it. Set `DOPADONE_DO_CONFIG` to select a particular file. For new
+shared configuration, copy `config.template.md` to
+`${XDG_CONFIG_HOME:-$HOME/.config}/dopadone/do/config.md` and fill it in. Existing
+Claude plugin-data configuration remains supported. A missing configuration selects
+CLI-only defaults; a configured but unreadable file is an error, not an empty profile.
 
-Throughout the workflow, where a step says "your configured X", it means the matching
-section of the config above. When the config is absent, fall back to the generic default
-named in the step (usually: use the CLI + `gh` + the Read tool directly, skip the extras).
+Throughout the workflow, "your configured X" refers to that configuration. When a
+section is absent, use the generic default named in the step. Use the active host's
+file, shell, and skill-loading tools for the operations described below.
 
 ## Prerequisites
 
@@ -320,7 +326,7 @@ Expected replies (interpret loosely):
 
 | Reply pattern | Interpretation | Next step |
 |---|---|---|
-| "yes" / "do it" / "go" / "ok" / silence + new request | Approved | → Step 8 (Claude executes) |
+| "yes" / "do it" / "go" / "ok" | Approved | → Step 8 (Claude executes) |
 | "I'll do it" / "manual" | User handling | → Step 9 (record outcome) |
 | Counter-proposal ("instead let's …") | Modify | Adopt redirection → Step 8 with modified action |
 | "skip" / "next" | Re-roll (pick-entry only — see note) | → Step 3 with same 5 candidates minus this one (max 2 re-rolls per invocation). For named-entry (1b/1c), "skip" exits the dent without recording an outcome. |
@@ -328,6 +334,9 @@ Expected replies (interpret loosely):
 
 If your internal scoring strongly suggested defer-with-scaffolding (energy is wrong, context
 is wrong, deadline is far), make THAT the recommended action in Step 6 — don't bury it.
+
+Silence or an unrelated new request does not approve the proposed action. Follow the
+new request on its own scope; leave an unanswered proposal pending.
 
 ### Step 8 — Execute (if approved)
 
@@ -456,5 +465,5 @@ outcome, AND only when `entry === "pick"`.
 
 ## First-run notes
 
-See [CLAUDE.md](CLAUDE.md) for editor notes (architecture rationale, design history) and
+See [AGENTS.md](AGENTS.md) for editor notes (architecture rationale, design history) and
 [references/e2e-check.md](references/e2e-check.md) for the manual post-install check.

@@ -190,3 +190,29 @@ Version history lives in the `git log` on `main` — the commit history is the c
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+
+## Codex task workflow
+
+Version 2.9.0 adds a Codex manifest and repository marketplace for the shared `do`
+skill. Both hosts read the same workflow and configuration resolver. Claude keeps
+its existing lifecycle hooks; the Codex manifest explicitly declares an empty
+inline hook set to prevent automatic loading of `hooks/hooks.json`.
+
+Codex 0.153.4 supports this inline hook declaration (verified against its release
+loader and manifest source); older bundled scaffolding validators may reject the
+field despite the native runtime accepting it. Do not remove the empty declaration:
+omitting it enables default hook discovery. Health-rhythm behavior has not been
+certified for Codex payloads and is not advertised there.
+
+Configure `DOPADONE_DO_CONFIG`, use the shared XDG path documented in
+`skills/do/config.template.md`, or retain existing Claude plugin-data configuration.
+The helper reads the file explicitly; neither Markdown links nor command snippets
+are automatic imports. Test the resolver with
+`node --test skills/do/scripts/test-read-config.cjs`.
+
+Source checks (2026-09-11):
+- https://github.com/openai/codex/blob/rust-v0.153.4/codex-rs/core-plugins/src/loader.rs
+- https://github.com/openai/codex/blob/rust-v0.153.4/codex-rs/core-plugins/src/manifest.rs
+- https://developers.openai.com/codex/skills
+- https://code.claude.com/docs/en/skills

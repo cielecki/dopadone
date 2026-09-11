@@ -1,0 +1,28 @@
+{
+  "name": "dopadone",
+  "version": "2.9.0",
+  "description": "Work on one task from the DopaDone CLI. Explicit task workflow; automatic Claude health-rhythm hooks are not available in Codex.",
+  "author": {
+    "name": "Maciej Cielecki"
+  },
+  "license": "MIT",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "DopaDone",
+    "shortDescription": "Pick and work on one task through the DopaDone CLI",
+    "longDescription": "Shared task workflow for Claude Code and Codex. Requires the DopaDone CLI. Codex exposes explicit task work; health-rhythm lifecycle hooks remain Claude-specific.",
+    "developerName": "Maciej Cielecki",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Pick one task and help me make progress."
+    ]
+  },
+  "hooks": {
+    "hooks": {}
+  }
+}
