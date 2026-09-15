@@ -368,6 +368,42 @@ describe('run (integration)', () => {
       expect(fetched).toBe(0)
     })
 
+    it('emits again at the configured interval, but not before it', () => {
+      const cfg = { ...makeConfig(dir), remindersEnabled: false }
+      const input = { prompt: 'hi', session_id: 's1' }
+      const invokeAt = (hour: number, minute: number) =>
+        run({
+          input,
+          clock: clockFrom(new Date(2026, 5, 15, hour, minute, 0)),
+          config: cfg,
+          fetchAgenda: () => agenda(),
+          rand: () => 0
+        })
+
+      invokeAt(13, 0)
+      expect(writes).toHaveLength(1)
+      invokeAt(13, 19)
+      expect(writes).toHaveLength(1)
+      invokeAt(13, 20)
+      expect(writes).toHaveLength(2)
+    })
+
+    it('disables the time-marker when its interval is zero', () => {
+      let fetched = 0
+      run({
+        input: { prompt: 'hi', session_id: 's1' },
+        clock: WORK,
+        config: { ...makeConfig(dir), remindersEnabled: false, timeMarkerInterval: 0 },
+        fetchAgenda: () => {
+          fetched++
+          return agenda()
+        },
+        rand: () => 0
+      })
+      expect(out()).toBe('')
+      expect(fetched).toBe(0)
+    })
+
     it('suppresses the sleep-phase block, which is otherwise forced to 100%', () => {
       run({
         input: { prompt: 'hi', session_id: 's1' },

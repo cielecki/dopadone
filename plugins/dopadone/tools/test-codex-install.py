@@ -187,5 +187,5 @@ if __name__ == "__main__":
 
         print(
             "PASS: clean native install, one enabled do skill, one untrusted "
-            "time-marker-only hook, and deterministic Codex payload replay"
+            "time-marker-only hook, and direct installed-bundle payload/cadence replay"
         )

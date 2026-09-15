@@ -1,6 +1,6 @@
 {
   "name": "dopadone",
-  "version": "2.10.0",
+  "version": "2.10.1",
   "description": "Work on one task from the DopaDone CLI and keep Codex aware of the current local date and time. Health-rhythm reminders remain Claude-specific.",
   "author": {
     "name": "Maciej Cielecki"

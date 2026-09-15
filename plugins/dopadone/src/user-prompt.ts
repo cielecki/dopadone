@@ -180,6 +180,7 @@ export function run(opts: RunOptions): void {
 
 /** Emit the time-marker if this session hasn't had any injection for `timeMarkerInterval` min. */
 function maybeTimeMarker(config: Config, sessionId: string, c: Clock): void {
+  if (config.timeMarkerInterval <= 0) return
   if (minutesSinceInject(config.dataDir, sessionId, c.unixSec) >= config.timeMarkerInterval) {
     emitTimeMarker(c, config.logFile)
     recordInject(config.dataDir, sessionId, c.unixSec)

@@ -56,18 +56,18 @@ Probabilistic interrupt is the opposite of nag:
 Loads on every session and — crucially — **picks up repo edits live** (the plugin is discovered in place, never copied to a version-pinned cache). Symlink the clone into your personal skills directory:
 
 ```bash
-git clone https://github.com/cielecki/claude-health-rhythm ~/Documents/Projects/apps/claude-health-rhythm
-ln -sfn ~/Documents/Projects/apps/claude-health-rhythm ~/.claude/skills/health-rhythm
+git clone https://github.com/cielecki/dopadone ~/workspace/projects/dopadone-public
+ln -sfn ~/workspace/projects/dopadone-public/plugins/dopadone ~/.claude/skills/dopadone
 ```
 
-Next session it loads as `health-rhythm@skills-dir` (verify: `claude plugin list`). No marketplace, no install step, no `enabledPlugins` entry — personal-scope `@skills-dir` plugins are on by default. A SKILL/script edit is live on the next session (hook changes need `/reload-plugins` or a restart). Remove with `rm ~/.claude/skills/health-rhythm`. (`@skills-dir` discovery follows the symlink, so the repo stays put.)
+Next session it loads as `dopadone@skills-dir` (verify: `claude plugin list`). No marketplace, no install step, no `enabledPlugins` entry — personal-scope `@skills-dir` plugins are on by default. A SKILL/script edit is live on the next session (hook changes need `/reload-plugins` or a restart). Remove with `rm ~/.claude/skills/dopadone`. (`@skills-dir` discovery follows the symlink, so the repo stays put.)
 
 ### Local / one-off — `--plugin-dir`
 
 For a single session without the symlink:
 
 ```bash
-claude --plugin-dir ~/Documents/Projects/apps/claude-health-rhythm
+claude --plugin-dir ~/workspace/projects/dopadone-public/plugins/dopadone
 ```
 
 Claude prompts for the userConfig values (dopadone path, sleep hours, override phrase, language) on first launch. Defaults match Maciej's setup; tweak as needed.
@@ -77,15 +77,15 @@ Claude prompts for the userConfig values (dopadone path, sleep hours, override p
 Not yet published. Once on a marketplace:
 
 ```bash
-claude plugin marketplace add cielecki/claude-health-rhythm
-claude plugin install health-rhythm
+claude plugin marketplace add cielecki/dopadone
+claude plugin install dopadone@dopadone
 ```
 
-> **Heads-up — marketplace installs are cached and version-pinned.** Unlike the `@skills-dir` symlink above, a marketplace install is *copied* into `~/.claude/plugins/cache/…` and pinned to the installed version. End users do **not** get changes by you pushing commits — they receive an update only when you **bump `version` in `.claude-plugin/plugin.json`** (this plugin uses explicit versions, so a same-version push is invisible), and even then their install refreshes only via `claude plugin update health-rhythm` / auto-update / reinstall. Document this in the user-facing README before publishing, so nobody debugs a "stale plugin" that's really just a pinned cache.
+> **Heads-up — marketplace installs are cached and version-pinned.** Unlike the `@skills-dir` symlink above, a marketplace install is *copied* into `~/.claude/plugins/cache/…` and pinned to the installed version. End users do **not** get changes by you pushing commits — they receive an update only when you **bump `version` in `.claude-plugin/plugin.json`** (this plugin uses explicit versions, so a same-version push is invisible), and even then their install refreshes only via `claude plugin update dopadone@dopadone` / auto-update / reinstall. Document this in the user-facing README before publishing, so nobody debugs a "stale plugin" that's really just a pinned cache.
 
 ## Configuration
 
-All settings live in `.claude-plugin/plugin.json` under `userConfig` and are filled in by Claude Code at install time. Values land in `~/.claude/settings.json` under `pluginConfigs["health-rhythm"].options` and are exposed to scripts as `$CLAUDE_PLUGIN_OPTION_*` env vars.
+All settings live in `.claude-plugin/plugin.json` under `userConfig` and are filled in by Claude Code at install time. Values land in `~/.claude/settings.json` under the installed DopaDone plugin's `pluginConfigs` entry and are exposed to scripts as `$CLAUDE_PLUGIN_OPTION_*` env vars.
 
 | Field | Default | What it does |
 |---|---|---|
@@ -101,7 +101,7 @@ All settings live in `.claude-plugin/plugin.json` under `userConfig` and are fil
 | `override_phrase` | `wiem, override` | Phrase user can include in any prompt to bypass blocks (the only escape from the sleep phase). |
 | `language` | `pl` | Reserved for future i18n. v2 is Polish-only. |
 | `time_marker_interval_minutes` | `20` | If no plugin output reached this session for N minutes, emit a `<dopadone event="time-marker" date="YYYY-MM-DD" time="HH:MM"/>` so Claude knows the current wall-clock date and time. Set to `0` to disable. |
-| `interrupt_cooldown_minutes` | `5` | After a habit interrupt fires for a given habit, suppress further interrupts for the SAME habit for N minutes — cross-session, so running 3 parallel Claude chats doesn't trip the same "obiad" interrupt three times. Applies only in the habit-driven phases (work/wrap-up); evening + sleep refusals are exempt. Not a `dopadone habits snooze` (that would affect other dopadone consumers); plugin-local only. Set to `0` to disable. |
+| `interrupt_lease_ttl_minutes` | `60` | Cross-session lease for a habit reminder. The first chat to emit it holds the lease; other chats stay silent until the owner takes another turn or the lease expires. Applies only in work/wrap-up habit phases. Set to `0` to let another chat take over immediately. |
 
 To reconfigure later: edit `~/.claude/settings.json` directly or re-run the plugin install flow.
 
@@ -159,7 +159,9 @@ The plugin writes a few small files under `$CLAUDE_PLUGIN_DATA` (defaults to `~/
 - `health-rhythm-notif.txt` — per-boundary hourly dedup key for the Notification hook
 - `last-inject-<session_id>.txt` — unix timestamp of the last plugin output for this Claude session; gates the time-marker so it doesn't fire too often
 - `last-wrapup-<session_id>.txt` — unix timestamp of the last wrap-up nudge for this session; enforces the `wrapup_reminder_interval_minutes` cadence
-- `interrupt-cooldown-<key>.txt` — global (cross-session) timestamp of the last habit interrupt for a given habit id; gates the per-interrupt cooldown so the same reminder doesn't fan out across parallel Claude chats (habit phases only)
+- `interrupt-claim-<habit-id>.txt` — cross-session lease recording which chat currently owns a habit reminder and when it claimed it
+- `routine-session-<session-id>.txt` — marks a scheduled/routine session so later turns in it remain silent
+- `override-quiet-<session-id>.txt` — expiry time for a session's temporary evening/sleep override window
 
 All are gitignored / ephemeral.
 
@@ -171,13 +173,15 @@ Temporarily, without removing the plugin:
 dopadone habits mute --until tomorrow --reason "wakacje"
 ```
 
-Permanently: uninstall the plugin (`claude plugin uninstall health-rhythm`) or remove the entry from `~/.claude/settings.json` `enabledPlugins`.
+Permanently: remove `~/.claude/skills/dopadone` for the `@skills-dir`
+installation, or run `claude plugin uninstall dopadone@dopadone` for a
+marketplace installation.
 
 ## Development
 
 ```bash
-git clone https://github.com/cielecki/claude-health-rhythm
-cd claude-health-rhythm
+git clone https://github.com/cielecki/dopadone
+cd dopadone/plugins/dopadone
 # The hooks import @dopadone/core/habits, bundled in from core's prebuilt dist.
 # Build core FIRST (sibling checkout) so dist/habits.mjs exists for the alias:
 pnpm --filter @dopadone/core build   # run from the dopadone repo

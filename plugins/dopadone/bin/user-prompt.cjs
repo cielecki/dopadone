@@ -3384,6 +3384,7 @@ function run(opts) {
   maybeTimeMarker(config, sessionId, c);
 }
 function maybeTimeMarker(config, sessionId, c) {
+  if (config.timeMarkerInterval <= 0) return;
   if (minutesSinceInject(config.dataDir, sessionId, c.unixSec) >= config.timeMarkerInterval) {
     emitTimeMarker(c, config.logFile);
     recordInject(config.dataDir, sessionId, c.unixSec);
