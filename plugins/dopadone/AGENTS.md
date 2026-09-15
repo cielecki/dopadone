@@ -1,9 +1,10 @@
 # DopaDone plugin development (read before touching this repo)
 
 This is a **shared Claude Code / Codex plugin**, not an app. The explicit `do`
-workflow is shared; the health-rhythm hooks below are Claude-specific. It injects per-turn health/time
-context (a "soft interrupt" directive + `<time-marker>` / `<interrupt>` XML
-tags) into Maciej's sessions.
+workflow and deterministic time-marker core are shared. Claude additionally gets
+the health-rhythm reminders, work-refusal behavior, and OS notifications described
+below. The shared user-prompt bundle injects `<time-marker>` and, only when reminders
+are enabled by the host adapter, `<interrupt>` / `<wrapup>` context.
 
 **As of v2.4.0 (#289 F1) the plugin is TypeScript**, ported from the original
 Bash at strict behavioral parity. Source is in `src/`; esbuild bundles two
@@ -121,11 +122,21 @@ step. Standard: never `--force`, never rewrite history.
 
 ## Codex boundary
 
-`.codex-plugin/plugin.json` declares the same `skills/` source and explicitly empty
-inline hooks. Codex 0.153.4 otherwise discovers `hooks/hooks.json` automatically.
-Keep that suppression until the lifecycle payloads and state behavior are tested.
-Run `python3 tools/test-codex-install.py` for native discovery and hook isolation,
-plus `node --test skills/do/scripts/test-read-config.cjs` for configuration resolution.
-No model or real task operation runs in these checks. The general scaffold validator
-currently rejects the supported inline hooks field; native install/hooks-list is the
-version-specific acceptance check.
+`.codex-plugin/plugin.json` declares the same `skills/` source and one inline
+`UserPromptSubmit` adapter. It runs the shared `bin/user-prompt.cjs` bundle with
+`DOPADONE_REMINDERS_ENABLED=false`, which takes the early time-awareness-only path:
+no agenda fetch, habit interrupt, wrap-up nudge, evening/sleep refusal, or OS
+notification. Keep this inline declaration narrow because omitting it makes Codex
+discover the full Claude `hooks/hooks.json` automatically.
+
+Run `python3 tools/test-codex-install.py` for native discovery, exact hook isolation,
+and a Codex-shaped bundle replay, plus
+`node --test skills/do/scripts/test-read-config.cjs` for configuration resolution.
+No model or real task operation runs in these checks. Codex provides `PLUGIN_ROOT`
+and a plugin-scoped `PLUGIN_DATA`; it also exposes their `CLAUDE_PLUGIN_*` aliases,
+which lets the common bundle retain the same state implementation. A new hook hash
+is untrusted after install and must be reviewed once through `/hooks`. Hooks are
+loaded for a task at startup, so verification of live context needs a new task.
+
+The general scaffold validator currently rejects the supported inline hooks field;
+native install/hooks-list is the version-specific acceptance check.

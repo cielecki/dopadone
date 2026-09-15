@@ -1,6 +1,9 @@
-# health-rhythm
+# DopaDone agent plugin
 
-A Claude Code plugin that injects **probabilistic health-habit reminders** into your sessions — so you actually eat lunch, wind down at night, and notice when you've been at the keyboard too long. Backed by [dopadone](https://github.com/cielecki/dopadone) habit data; designed for ADHD-style anchoring without becoming a nag.
+A shared Claude Code and Codex plugin. Both hosts get the explicit `do` workflow
+and deterministic local date/time markers. Claude Code additionally gets
+**probabilistic health-habit reminders** backed by
+[dopadone](https://github.com/cielecki/dopadone) habit data.
 
 ## What it does
 
@@ -192,18 +195,28 @@ Version history lives in the `git log` on `main` — the commit history is the c
 MIT — see [LICENSE](LICENSE).
 
 
-## Codex task workflow
+## Codex behavior
 
-Version 2.9.0 adds a Codex manifest and repository marketplace for the shared `do`
-skill. Both hosts read the same workflow and configuration resolver. Claude keeps
-its existing lifecycle hooks; the Codex manifest explicitly declares an empty
-inline hook set to prevent automatic loading of `hooks/hooks.json`.
+Version 2.10.0 exposes two shared surfaces in Codex: the `do` skill and the
+time-awareness path from the same compiled user-prompt bundle Claude uses. The
+Codex manifest sets `DOPADONE_REMINDERS_ENABLED=false`, so an eligible prompt can
+inject only:
+
+```xml
+<dopadone event="time-marker" date="YYYY-MM-DD" time="HH:MM"/>
+```
+
+The marker is emitted at most once per task in the configured interval (20 minutes
+by default). This path returns before the DopaDone CLI or reminder logic runs.
+Habit reminders, wrap-up nudges, evening/sleep refusals, and OS notifications remain
+Claude-specific.
 
 Codex 0.153.4 supports this inline hook declaration (verified against its release
-loader and manifest source); older bundled scaffolding validators may reject the
-field despite the native runtime accepting it. Do not remove the empty declaration:
-omitting it enables default hook discovery. Health-rhythm behavior has not been
-certified for Codex payloads and is not advertised there.
+loader, native install, and `hooks/list`). Older bundled scaffolding validators may
+reject the field despite the native runtime accepting it. Do not remove the inline
+declaration: omitting it enables default discovery of Claude's complete
+`hooks/hooks.json`. Plugin hooks require a one-time trust review in Codex `/hooks`,
+and a new task is required after installing or changing a hook.
 
 Configure `DOPADONE_DO_CONFIG`, use the shared XDG path documented in
 `skills/do/config.template.md`, or retain existing Claude plugin-data configuration.
@@ -211,8 +224,9 @@ The helper reads the file explicitly; neither Markdown links nor command snippet
 are automatic imports. Test the resolver with
 `node --test skills/do/scripts/test-read-config.cjs`.
 
-Source checks (2026-09-11):
+Source checks (2026-09-15):
 - https://github.com/openai/codex/blob/rust-v0.153.4/codex-rs/core-plugins/src/loader.rs
 - https://github.com/openai/codex/blob/rust-v0.153.4/codex-rs/core-plugins/src/manifest.rs
+- https://developers.openai.com/codex/hooks
 - https://developers.openai.com/codex/skills
 - https://code.claude.com/docs/en/skills
